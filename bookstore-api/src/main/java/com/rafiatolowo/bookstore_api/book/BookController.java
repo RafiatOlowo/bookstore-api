@@ -53,6 +53,16 @@ public class BookController {
     }
 
     /**
+     * GET endpoint to find books by author.
+     * @param author The name of the author to search for.
+     * @return A list of books by the specified author.
+     */
+    @GetMapping("/author/{author}")
+    public List<Book> getBooksByAuthor(@PathVariable String author) {
+        return bookRepository.findByAuthor(author);
+    }
+
+    /**
      * PUT endpoint to update an existing book by its ISBN.
      * @param isbn The ISBN of the book to update.
      * @param updatedBook The updated book object.
