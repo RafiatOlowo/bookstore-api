@@ -1,6 +1,8 @@
 package com.rafiatolowo.bookstore_api.book;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
 import java.util.List;
 
 /**
@@ -25,4 +27,20 @@ public interface BookRepository extends JpaRepository<Book, Long> {
      * @return A list of books by the specified author.
      */
     List<Book> findByAuthor(String author);
+
+    /**
+     * Finds all books that are of type HardcoverBook.
+     * This query filters based on the `book_type` discriminator column.
+     * @return A list of all hardcover books.
+     */
+    @Query("SELECT h FROM HardcoverBook h")
+    List<HardcoverBook> findAllHardcoverBooks();
+
+    /**
+     * Finds all books that are of type PaperbackBook.
+     * This query filters based on the `book_type` discriminator column.
+     * @return A list of all paperback books.
+     */
+    @Query("SELECT p FROM PaperbackBook p")
+    List<PaperbackBook> findAllPaperbackBooks();
 }
