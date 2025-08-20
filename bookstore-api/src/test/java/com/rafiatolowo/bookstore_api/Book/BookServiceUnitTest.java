@@ -1,0 +1,71 @@
+package com.rafiatolowo.bookstore_api.book;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+public class BookServiceUnitTest {
+
+    @Mock
+    private BookRepository bookRepository;
+
+    @InjectMocks
+    private BookService bookService;
+
+    @Test
+    void testAddBookSuccess() {
+        // Arrange: Create a new book
+        Book newBook = new Book("978-1234567890", "Test Driven Development", "Kent Beck", 50);
+
+        // Tell the mock repository what to return when findByIsbn is called (simulating no duplicate)
+        when(bookRepository.findByIsbn(newBook.getIsbn())).thenReturn(null);
+
+        // Tell the mock repository what to return when save is called
+        when(bookRepository.save(newBook)).thenReturn(newBook);
+
+        // Act
+        Book savedBook = bookService.addBook(newBook);
+
+        // Assert
+        assertThat(savedBook).isEqualTo(newBook);
+        verify(bookRepository, times(1)).save(newBook); // Verify that save was called exactly once
+    }
+
+    @Test
+    void testAddBookThrowsExceptionForDuplicate() {
+        // Arrange: Create a book that already exists
+        Book existingBook = new Book("978-1234567890", "Duplicate Book", "Jane Doe", 20);
+
+        // Tell the mock repository to return the existing book when findByIsbn is called
+        when(bookRepository.findByIsbn(existingBook.getIsbn())).thenReturn(existingBook);
+
+        // Act & Assert: Use assertThatThrownBy to verify that an exception is thrown
+        assertThatThrownBy(() -> bookService.addBook(existingBook))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("A book with this ISBN already exists.");
+
+        // Verify that the save method was never called
+        verify(bookRepository, never()).save(any(Book.class));
+    }
+    
+    @Test
+    void testDeleteBookByIsbnSuccess() {
+        // Arrange
+        String isbn = "978-1234567890";
+        Book bookToDelete = new Book(isbn, "Book to Delete", "John Smith", 10);
+        when(bookRepository.findByIsbn(isbn)).thenReturn(bookToDelete);
+
+        // Act
+        boolean result = bookService.deleteBookByIsbn(isbn);
+
+        // Assert
+        assertThat(result).isTrue();
+        verify(bookRepository, times(1)).delete(bookToDelete);
+    }
+}
