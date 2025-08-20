@@ -1,40 +1,54 @@
 package com.rafiatolowo.bookstore_api.book;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * REST controller for managing the book inventory.
- * Defines API endpoints for CRUD operations.
+ * The REST controller for the Bookstore API.
+ * This class handles all incoming web requests related to books.
  */
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
 
-    @Autowired
-    private BookRepository bookRepository;
+    private final BookService bookService;
 
     /**
-     * GET endpoint to retrieve a list of all books in the inventory.
-     * @return A list of all books.
+     * Constructor for dependency injection.
      */
-    @GetMapping
-    public List<Book> getAllBooks() {
-        return bookRepository.findAll();
+    
+    public BookController(BookService bookService) {
+        this.bookService = bookService;
     }
 
     /**
-     * POST endpoint to create a new book entry.
-     * @param book The book object to be created.
-     * @return The created book with a 201 Created status.
+     * Endpoint to retrieve a list of all books.
+     * GET /api/books
+     * @return A ResponseEntity containing a list of all books and an OK status.
+     */
+    @GetMapping
+    public ResponseEntity<List<Book>> getAllBooks() {
+        List<Book> books = bookService.getAllBooks();
+        return ResponseEntity.ok(books);
+    }
+
+    /**
+     * Endpoint to add a new book to the database.
+     * POST /api/books
+     * @param book The book object received from the request body.
+     * @return A ResponseEntity with the created book and a CREATED status, or a CONFLICT status if the book already exists.
      */
     @PostMapping
-    public ResponseEntity<Book> createBook(@RequestBody Book book) {
-        Book savedBook = bookRepository.save(book);
-        return new ResponseEntity<>(savedBook, HttpStatus.CREATED);
+    public ResponseEntity<Book> addBook(@RequestBody Book book) {
+        try {
+            Book createdBook = bookService.addBook(book);
+            return new ResponseEntity<>(createdBook, HttpStatus.CREATED);
+        } catch (IllegalStateException e) {
+            // Handle the case where the book already exists
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
     }
 
     /**
@@ -44,12 +58,9 @@ public class BookController {
      */
     @GetMapping("/{isbn}")
     public ResponseEntity<Book> getBookByIsbn(@PathVariable String isbn) {
-        Book book = bookRepository.findByIsbn(isbn);
-        if (book != null) {
-            return ResponseEntity.ok(book);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return bookService.findByIsbn(isbn)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
@@ -58,8 +69,9 @@ public class BookController {
      * @return A list of books by the specified author.
      */
     @GetMapping("/author/{author}")
-    public List<Book> getBooksByAuthor(@PathVariable String author) {
-        return bookRepository.findByAuthor(author);
+    public ResponseEntity<List<Book>> getBooksByAuthor(@PathVariable String author) {
+        List<Book> books = bookService.findBooksByAuthor(author);
+        return ResponseEntity.ok(books);
     }
 
     /**
@@ -70,19 +82,10 @@ public class BookController {
      */
     @PutMapping("/{isbn}")
     public ResponseEntity<Book> updateBook(@PathVariable String isbn, @RequestBody Book updatedBook) {
-        Book existingBook = bookRepository.findByIsbn(isbn);
-        if (existingBook != null) {
-            // Update the existing book's fields.
-            existingBook.setTitle(updatedBook.getTitle());
-            existingBook.setAuthor(updatedBook.getAuthor());
-            existingBook.setStock(updatedBook.getStock());
-            
-            // This is a simplified update. In a real-world app, you'd handle
-            // specific subclass fields as well.
-            
-            bookRepository.save(existingBook);
-            return ResponseEntity.ok(existingBook);
-        } else {
+        try {
+            Book book = bookService.updateBook(isbn, updatedBook);
+            return ResponseEntity.ok(book);
+        } catch (IllegalStateException e) {
             return ResponseEntity.notFound().build();
         }
     }
@@ -94,9 +97,7 @@ public class BookController {
      */
     @DeleteMapping("/{isbn}")
     public ResponseEntity<Void> deleteBookByIsbn(@PathVariable String isbn) {
-        Book book = bookRepository.findByIsbn(isbn);
-        if (book != null) {
-            bookRepository.delete(book);
+        if (bookService.deleteBookByIsbn(isbn)) {
             return ResponseEntity.noContent().build();
         } else {
             return ResponseEntity.notFound().build();
