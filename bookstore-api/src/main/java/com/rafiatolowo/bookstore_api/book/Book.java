@@ -1,8 +1,8 @@
 package com.rafiatolowo.bookstore_api.book;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
-
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * Represents a book entity in the bookstore.
@@ -12,7 +12,16 @@ import jakarta.persistence.*;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "book_type", discriminatorType = DiscriminatorType.STRING)
-public class Book {
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "bookType"
+)
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = HardcoverBook.class, name = "hardcover"),
+        @JsonSubTypes.Type(value = PaperbackBook.class, name = "paperback")
+})
+public abstract class Book {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,17 +51,6 @@ public class Book {
         this.title = title;
         this.author = author;
         this.stock = stock;
-    }
-
-    // New method to expose the book type for JSON serialization
-    /**
-     * @return The type of the book (e.g., "paperback", "hardcover").
-     * This value is derived from the class name for JSON serialization.
-     */
-    @JsonGetter("bookType")
-    public String getBookType() {
-        // This is a simple way to get the discriminator value from the class name.
-        return this.getClass().getSimpleName().toLowerCase();
     }
 
     // Getters and Setters

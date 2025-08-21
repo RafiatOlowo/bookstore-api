@@ -27,9 +27,10 @@ public class BookControllerUnitTest {
 
     @Test
     void testGetAllBooks() throws Exception {
-        // Arrange: Create a fake list of books that the mock service will return
-        Book book1 = new Book("978-0134685991", "Clean Code", "Robert C. Martin", 100);
-        Book book2 = new Book("978-0134685992", "The Clean Coder", "Robert C. Martin", 80);
+        // Arrange: Create a fake list of books that the mock service will return.
+        // We now use a concrete class like PaperbackBook instead of the abstract Book class.
+        PaperbackBook book1 = new PaperbackBook("978-0134685991", "Clean Code", "Robert C. Martin", 100);
+        PaperbackBook book2 = new PaperbackBook("978-0134685992", "The Clean Coder", "Robert C. Martin", 80);
         List<Book> allBooks = Arrays.asList(book1, book2);
 
         // Tell the mock service what to return when its getAllBooks method is called
@@ -44,9 +45,9 @@ public class BookControllerUnitTest {
 
     @Test
     void testGetBooksByAuthor() throws Exception {
-        // Arrange: Create a fake list of books for a specific author
-        Book book1 = new Book("978-0134685991", "Clean Code", "Robert C. Martin", 100);
-        Book book2 = new Book("978-0134685992", "The Clean Coder", "Robert C. Martin", 80);
+        // Arrange: Create a fake list of books for a specific author using the concrete class
+        PaperbackBook book1 = new PaperbackBook("978-0134685991", "Clean Code", "Robert C. Martin", 100);
+        PaperbackBook book2 = new PaperbackBook("978-0134685992", "The Clean Coder", "Robert C. Martin", 80);
         List<Book> books = Arrays.asList(book1, book2);
 
         // Tell the mock service what to return when its findBooksByAuthor method is called
@@ -61,17 +62,19 @@ public class BookControllerUnitTest {
 
     @Test
     void testAddBookSuccess() throws Exception {
-        // Arrange: Create a sample book to add
-        Book newBook = new Book("978-1234567890", "Test Driven Development", "Kent Beck", 50);
+        // Arrange: Create a sample book to add using the concrete class
+        PaperbackBook newBook = new PaperbackBook("978-1234567890", "Test Driven Development", "Kent Beck", 50);
         
         // Tell the mock service to return the book when addBook is called
         when(bookService.addBook(any(Book.class))).thenReturn(newBook);
 
-        // Act & Assert: Perform a POST request and verify the response
+        // Act & Assert: Perform a POST request and verify the response.
+        // We must include the "bookType" field in the JSON payload
+        // to correctly deserialize the JSON into the specific PaperbackBook class.
         mockMvc.perform(post("/api/books")
-               .contentType(MediaType.APPLICATION_JSON)
-               .content("{\"isbn\":\"978-1234567890\", \"title\":\"Test Driven Development\", \"author\":\"Kent Beck\", \"stock\":50}"))
-               .andExpect(status().isCreated())
-               .andExpect(jsonPath("$.title").value("Test Driven Development"));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"isbn\":\"978-1234567890\", \"title\":\"Test Driven Development\", \"author\":\"Kent Beck\", \"stock\":50, \"bookType\":\"paperback\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title").value("Test Driven Development"));
     }
 }

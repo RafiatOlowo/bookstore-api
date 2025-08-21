@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The repository interface for Book entities.
@@ -17,7 +18,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
      * @param isbn The ISBN of the book.
      * @return The book with the specified ISBN.
      */
-    Book findByIsbn(String isbn);
+    Optional<Book> findByIsbn(String isbn);
 
     /**
      * Finds a list of books by a specific author.
