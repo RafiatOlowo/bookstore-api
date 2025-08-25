@@ -39,8 +39,8 @@ public class BookControllerUnitTest {
     @Test
     void testGetAllBooks() throws Exception {
         // Arrange: Create a fake list of books that the mock service will return.
-        PaperbackBook book1 = new PaperbackBook("978-0134685991", "Clean Code", "Robert C. Martin", 100);
-        PaperbackBook book2 = new PaperbackBook("978-0134685992", "The Clean Coder", "Robert C. Martin", 80);
+        EBook book1 = new EBook("978-0134685991", "Clean Code", "Robert C. Martin", 100);
+        EBook book2 = new EBook("978-0134685992", "The Clean Coder", "Robert C. Martin", 80);
         List<Book> allBooks = Arrays.asList(book1, book2);
 
         // Tell the mock service what to return when its getAllBooks method is called
@@ -57,8 +57,7 @@ public class BookControllerUnitTest {
     @Test
     void testAddBookSuccess() throws Exception {
         // Arrange: Create a sample book to add using the concrete class
-        PaperbackBook newBook = new PaperbackBook("978-1234567890", "Test Driven Development", "Kent Beck", 50);
-        
+        EBook newBook = new EBook("978-1234567890", "Test Driven Development", "Kent Beck", 50);
         // Tell the mock service to return the book when addBook is called
         when(bookService.addBook(any(Book.class))).thenReturn(newBook);
 
@@ -73,7 +72,7 @@ public class BookControllerUnitTest {
     @Test
     void testAddBookConflict() throws Exception {
         // Arrange: Create a book that already exists
-        PaperbackBook existingBook = new PaperbackBook("978-1234567890", "Duplicate Book", "Jane Doe", 20);
+        EBook existingBook = new EBook("978-1234567890", "Duplicate Book", "Jane Doe", 20);
 
         // Tell the mock service to throw an exception when addBook is called with a duplicate ISBN
         when(bookService.addBook(any(Book.class))).thenThrow(new IllegalStateException("A book with this ISBN already exists."));
@@ -88,8 +87,8 @@ public class BookControllerUnitTest {
     @Test
     void testGetBookByIsbnSuccess() throws Exception {
         // Arrange: Create a book that the service will return
-        PaperbackBook foundBook = new PaperbackBook("978-0134685991", "Clean Code", "Robert C. Martin", 100);
-        
+        EBook foundBook = new EBook("978-0134685991", "Clean Code", "Robert C. Martin", 100);
+
         // Tell the mock service to return the book when findByIsbn is called
         when(bookService.findByIsbn("978-0134685991")).thenReturn(Optional.of(foundBook));
         
@@ -112,8 +111,8 @@ public class BookControllerUnitTest {
     @Test
     void testGetBooksByAuthor() throws Exception {
         // Arrange: Create a fake list of books for a specific author using the concrete class
-        PaperbackBook book1 = new PaperbackBook("978-0134685991", "Clean Code", "Robert C. Martin", 100);
-        PaperbackBook book2 = new PaperbackBook("978-0134685992", "The Clean Coder", "Robert C. Martin", 80);
+        EBook book1 = new EBook("978-0134685991", "Clean Code", "Robert C. Martin", 100);
+        EBook book2 = new EBook("978-0134685992", "The Clean Coder", "Robert C. Martin", 80);
         List<Book> books = Arrays.asList(book1, book2);
 
         // Tell the mock service what to return when its findBooksByAuthor method is called
@@ -129,8 +128,8 @@ public class BookControllerUnitTest {
     @Test
     void testUpdateBookSuccess() throws Exception {
         // Arrange: Create the updated version of the book
-        PaperbackBook updatedBook = new PaperbackBook("978-0134685991", "Updated Title", "Robert C. Martin", 150);
-        
+        EBook updatedBook = new EBook("978-0134685991", "Updated Title", "Robert C. Martin", 150);
+
         // Tell the mock service to return the updated book
         when(bookService.updateBook(any(String.class), any(Book.class))).thenReturn(updatedBook);
         
@@ -145,8 +144,8 @@ public class BookControllerUnitTest {
     @Test
     void testUpdateBookNotFound() throws Exception {
         // Arrange: Create a book to update that does not exist
-        PaperbackBook nonExistentBook = new PaperbackBook("978-9999999999", "No Such Book", "Unknown", 0);
-        
+        EBook nonExistentBook = new EBook("978-9999999999", "No Such Book", "Unknown", 0);
+
         // Tell the mock service to throw an exception when the book is not found
         when(bookService.updateBook(any(String.class), any(Book.class))).thenThrow(new IllegalStateException());
 

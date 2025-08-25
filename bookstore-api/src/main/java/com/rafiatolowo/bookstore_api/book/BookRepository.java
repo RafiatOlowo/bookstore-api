@@ -30,18 +30,18 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     List<Book> findByAuthor(String author);
 
     /**
-     * Finds all books that are of type HardcoverBook.
+     * Finds all books that are of type PhysicalCopyBook.
      * This query filters based on the `book_type` discriminator column.
-     * @return A list of all hardcover books.
+     * @return A list of all physical copy books.
      */
-    @Query("SELECT h FROM HardcoverBook h")
-    List<HardcoverBook> findAllHardcoverBooks();
+    @Query("SELECT p FROM PhysicalCopyBook p")
+    List<PhysicalCopyBook> findAllPhysicalCopyBooks();
 
     /**
-     * Finds all books that are of type PaperbackBook.
+     * Finds all books that are of type EBook.
      * This query filters based on the `book_type` discriminator column.
-     * @return A list of all paperback books.
+     * @return A list of all ebook books.
      */
-    @Query("SELECT p FROM PaperbackBook p")
-    List<PaperbackBook> findAllPaperbackBooks();
+    @Query("SELECT e FROM EBook e")
+    List<EBook> findAllEBooks();
 }

@@ -4,7 +4,7 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
 /**
- * Represents a Paperback Book entity.
+ * Represents a PhysicalCopy Book entity.
  * This class inherits from the base Book class.
  *
  * The @DiscriminatorValue annotation specifies the value
@@ -12,23 +12,23 @@ import jakarta.persistence.Entity;
  * specific subclass.
  */
 @Entity
-@DiscriminatorValue("paperback")
-public class PaperbackBook extends Book {
+@DiscriminatorValue("physical_copy")
+public class PhysicalCopyBook extends Book {
 
     /**
      * Default constructor required by JPA.
      */
-    public PaperbackBook() {
+    public PhysicalCopyBook() {
     }
 
     /**
-     * Constructs a new PaperbackBook with the given details, inheriting from the base Book class.
+     * Constructs a new PhysicalCopyBook with the given details, inheriting from the base Book class.
      * @param isbn The unique ISBN of the book.
      * @param title The title of the book.
      * @param author The author of the book.
      * @param stock The number of books in stock.
      */
-    public PaperbackBook(String isbn, String title, String author, Integer stock) {
+    public PhysicalCopyBook(String isbn, String title, String author, Integer stock) {
         super(isbn, title, author, stock);
     }
 }
