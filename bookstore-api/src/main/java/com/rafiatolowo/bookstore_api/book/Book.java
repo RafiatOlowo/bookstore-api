@@ -7,8 +7,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 /**
  * Represents a book entity in the bookstore.
  * This class serves as the base for various types of books
- * such as Paperback and Hardcover, using a single-table inheritance strategy.
- */ 
+ * such as EBook and PhysicalCopyBook, using a single-table inheritance strategy.
+ */
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "book_type", discriminatorType = DiscriminatorType.STRING)
@@ -18,8 +18,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         property = "bookType"
 )
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = HardcoverBook.class, name = "hardcover"),
-        @JsonSubTypes.Type(value = PaperbackBook.class, name = "paperback")
+        @JsonSubTypes.Type(value = PhysicalCopyBook.class, name = "physical_copy"),
+        @JsonSubTypes.Type(value = EBook.class, name = "ebook")
 })
 public abstract class Book {
 

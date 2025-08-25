@@ -39,8 +39,8 @@ public class BookServiceUnitTest {
     @Test
     void testGetAllBooks() {
         // Arrange: Create some mock books and tell the mock repository to return them.
-        PaperbackBook book1 = new PaperbackBook("123", "Title 1", "Author 1", 100);
-        PaperbackBook book2 = new PaperbackBook("456", "Title 2", "Author 2", 200);
+        EBook book1 = new EBook("123", "Title 1", "Author 1", 100);
+        EBook book2 = new EBook("456", "Title 2", "Author 2", 200);
         List<Book> books = Arrays.asList(book1, book2);
         when(bookRepository.findAll()).thenReturn(books);
 
@@ -57,7 +57,7 @@ public class BookServiceUnitTest {
     void testFindBookByIsbnFound() {
         // Arrange: Create a mock book and tell the mock repository to return it.
         String isbn = "123";
-        PaperbackBook book = new PaperbackBook(isbn, "Title 1", "Author 1", 100);
+        EBook book = new EBook(isbn, "Title 1", "Author 1", 100);
         when(bookRepository.findByIsbn(isbn)).thenReturn(Optional.of(book));
 
         // Act: Call the service method.
@@ -86,7 +86,7 @@ public class BookServiceUnitTest {
     @Test
     void testAddBookSuccess() {
         // Arrange: Create a new book and set up the mocks.
-        PaperbackBook newBook = new PaperbackBook("123", "New Book", "New Author", 50);
+        EBook newBook = new EBook("123", "New Book", "New Author", 50);
         when(bookRepository.findByIsbn("123")).thenReturn(Optional.empty()); // No existing book found
         when(bookRepository.save(newBook)).thenReturn(newBook); // Return the saved book
 
@@ -102,7 +102,7 @@ public class BookServiceUnitTest {
     @Test
     void testAddBookConflict() {
         // Arrange: Create a book that already exists and set up the mocks.
-        PaperbackBook existingBook = new PaperbackBook("123", "Existing Book", "Old Author", 10);
+        EBook existingBook = new EBook("123", "Existing Book", "Old Author", 10);
         when(bookRepository.findByIsbn("123")).thenReturn(Optional.of(existingBook)); // Existing book is found
 
         // Act & Assert: Verify that an IllegalStateException is thrown.
@@ -119,8 +119,8 @@ public class BookServiceUnitTest {
     @Test
     void testFindBooksByAuthor() {
         // Arrange: Create some mock books for the same author.
-        PaperbackBook book1 = new PaperbackBook("123", "Title 1", "Author A", 100);
-        PaperbackBook book2 = new PaperbackBook("456", "Title 2", "Author A", 200);
+        EBook book1 = new EBook("123", "Title 1", "Author A", 100);
+        EBook book2 = new EBook("456", "Title 2", "Author A", 200);
         List<Book> books = Arrays.asList(book1, book2);
         when(bookRepository.findByAuthor("Author A")).thenReturn(books);
 
@@ -137,9 +137,9 @@ public class BookServiceUnitTest {
     void testUpdateBookSuccess() {
         // Arrange: Create an existing book and a book with updated data.
         String isbn = "123";
-        PaperbackBook existingBook = new PaperbackBook(isbn, "Old Title", "Old Author", 50);
-        PaperbackBook updatedBookData = new PaperbackBook(null, "New Title", "New Author", 100);
-        
+        EBook existingBook = new EBook(isbn, "Old Title", "Old Author", 50);
+        EBook updatedBookData = new EBook(null, "New Title", "New Author", 100);
+
         when(bookRepository.findByIsbn(isbn)).thenReturn(Optional.of(existingBook)); // Find the existing book
         when(bookRepository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0)); // Return the saved book
 
@@ -158,7 +158,7 @@ public class BookServiceUnitTest {
     void testUpdateBookNotFound() {
         // Arrange: Set up the mock to return an empty Optional.
         String isbn = "999";
-        PaperbackBook updatedBookData = new PaperbackBook(null, "New Title", "New Author", 100);
+        EBook updatedBookData = new EBook(null, "New Title", "New Author", 100);
         when(bookRepository.findByIsbn(isbn)).thenReturn(Optional.empty());
 
         // Act & Assert: Verify that an IllegalStateException is thrown.
@@ -176,7 +176,7 @@ public class BookServiceUnitTest {
     void testDeleteBookSuccess() {
         // Arrange: Set up the mock to find a book to delete.
         String isbn = "123";
-        PaperbackBook existingBook = new PaperbackBook(isbn, "Title", "Author", 10);
+        EBook existingBook = new EBook(isbn, "Title", "Author", 10);
         when(bookRepository.findByIsbn(isbn)).thenReturn(Optional.of(existingBook));
 
         // Act: Call the service method.
