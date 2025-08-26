@@ -39,8 +39,9 @@ public class BookServiceUnitTest {
     @Test
     void testGetAllBooks() {
         // Arrange: Create some mock books and tell the mock repository to return them.
+        // This test includes both EBook and PhysicalCopyBook.
         EBook book1 = new EBook("123", "Title 1", "Author 1", 100);
-        EBook book2 = new EBook("456", "Title 2", "Author 2", 200);
+        PhysicalCopyBook book2 = new PhysicalCopyBook("456", "Title 2", "Author 2", 200);
         List<Book> books = Arrays.asList(book1, book2);
         when(bookRepository.findAll()).thenReturn(books);
 
@@ -50,14 +51,31 @@ public class BookServiceUnitTest {
         // Assert: Verify the result is as expected and the repository method was called.
         assertEquals(2, result.size());
         assertEquals("Title 1", result.get(0).getTitle());
+        assertEquals("Title 2", result.get(1).getTitle());
         verify(bookRepository, times(1)).findAll();
     }
 
-    @Test
-    void testFindBookByIsbnFound() {
-        // Arrange: Create a mock book and tell the mock repository to return it.
+     @Test
+    void testFindEBookByIsbnFound() {
+        // Arrange: Create a mock EBook and tell the mock repository to return it.
         String isbn = "123";
         EBook book = new EBook(isbn, "Title 1", "Author 1", 100);
+        when(bookRepository.findByIsbn(isbn)).thenReturn(Optional.of(book));
+
+        // Act: Call the service method.
+        Optional<Book> result = bookService.findByIsbn(isbn);
+
+        // Assert: Verify the book is found and the repository method was called.
+        assertTrue(result.isPresent());
+        assertEquals(isbn, result.get().getIsbn());
+        verify(bookRepository, times(1)).findByIsbn(isbn);
+    }
+
+    @Test
+    void testFindPhysicalCopyBookByIsbnFound() {
+        // Arrange: Create a mock book and tell the mock repository to return it.
+        String isbn = "123-1";
+        PhysicalCopyBook book = new PhysicalCopyBook(isbn, "Title 1", "Author 1", 100);
         when(bookRepository.findByIsbn(isbn)).thenReturn(Optional.of(book));
 
         // Act: Call the service method.
@@ -84,7 +102,7 @@ public class BookServiceUnitTest {
     }
 
     @Test
-    void testAddBookSuccess() {
+    void testAddEBookSuccess() {
         // Arrange: Create a new book and set up the mocks.
         EBook newBook = new EBook("123", "New Book", "New Author", 50);
         when(bookRepository.findByIsbn("123")).thenReturn(Optional.empty()); // No existing book found
@@ -96,6 +114,22 @@ public class BookServiceUnitTest {
         // Assert: Verify the book was saved and the result is correct.
         assertEquals(newBook, result);
         verify(bookRepository, times(1)).findByIsbn("123");
+        verify(bookRepository, times(1)).save(newBook);
+    }
+
+    @Test
+    void testAddPhysicalCopyBookSuccess() {
+        // Arrange: Create a new PhysicalCopyBook and set up the mocks.
+        PhysicalCopyBook newBook = new PhysicalCopyBook("456", "New Physical Book", "Another Author", 100);
+        when(bookRepository.findByIsbn("456")).thenReturn(Optional.empty()); // No existing book found
+        when(bookRepository.save(newBook)).thenReturn(newBook); // Return the saved book
+
+        // Act: Call the service method.
+        Book result = bookService.addBook(newBook);
+
+        // Assert: Verify the book was saved and the result is correct.
+        assertEquals(newBook, result);
+        verify(bookRepository, times(1)).findByIsbn("456");
         verify(bookRepository, times(1)).save(newBook);
     }
 
@@ -120,7 +154,7 @@ public class BookServiceUnitTest {
     void testFindBooksByAuthor() {
         // Arrange: Create some mock books for the same author.
         EBook book1 = new EBook("123", "Title 1", "Author A", 100);
-        EBook book2 = new EBook("456", "Title 2", "Author A", 200);
+        PhysicalCopyBook book2 = new PhysicalCopyBook("456", "Title 2", "Author A", 200);
         List<Book> books = Arrays.asList(book1, book2);
         when(bookRepository.findByAuthor("Author A")).thenReturn(books);
 
@@ -130,15 +164,37 @@ public class BookServiceUnitTest {
         // Assert: Verify the correct number of books and that the repository method was called.
         assertEquals(2, result.size());
         assertEquals("Author A", result.get(0).getAuthor());
+        assertEquals("Author A", result.get(1).getAuthor());
         verify(bookRepository, times(1)).findByAuthor("Author A");
     }
 
     @Test
-    void testUpdateBookSuccess() {
+    void testUpdateEBookSuccess() {
         // Arrange: Create an existing book and a book with updated data.
         String isbn = "123";
         EBook existingBook = new EBook(isbn, "Old Title", "Old Author", 50);
         EBook updatedBookData = new EBook(null, "New Title", "New Author", 100);
+
+        when(bookRepository.findByIsbn(isbn)).thenReturn(Optional.of(existingBook)); // Find the existing book
+        when(bookRepository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0)); // Return the saved book
+
+        // Act: Call the service method.
+        Book result = bookService.updateBook(isbn, updatedBookData);
+
+        // Assert: Verify the book was updated with the new data.
+        assertEquals("New Title", result.getTitle());
+        assertEquals("New Author", result.getAuthor());
+        assertEquals(100, result.getStock());
+        verify(bookRepository, times(1)).findByIsbn(isbn);
+        verify(bookRepository, times(1)).save(any(Book.class));
+    }
+
+     @Test
+    void testUpdatePhysicalCopyBookSuccess() {
+        // Arrange: Create an existing book and a book with updated data.
+        String isbn = "123";
+        PhysicalCopyBook existingBook = new PhysicalCopyBook(isbn, "Old Title", "Old Author", 50);
+        PhysicalCopyBook updatedBookData = new PhysicalCopyBook(null, "New Title", "New Author", 100);
 
         when(bookRepository.findByIsbn(isbn)).thenReturn(Optional.of(existingBook)); // Find the existing book
         when(bookRepository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0)); // Return the saved book
@@ -173,10 +229,26 @@ public class BookServiceUnitTest {
     }
 
     @Test
-    void testDeleteBookSuccess() {
+    void testDeleteEBookSuccess() {
         // Arrange: Set up the mock to find a book to delete.
         String isbn = "123";
         EBook existingBook = new EBook(isbn, "Title", "Author", 10);
+        when(bookRepository.findByIsbn(isbn)).thenReturn(Optional.of(existingBook));
+
+        // Act: Call the service method.
+        boolean result = bookService.deleteBookByIsbn(isbn);
+
+        // Assert: Verify the deletion was successful and the repository's delete method was called.
+        assertTrue(result);
+        verify(bookRepository, times(1)).findByIsbn(isbn);
+        verify(bookRepository, times(1)).delete(existingBook);
+    }
+
+    @Test
+    void testDeletePhysicalCopyBookSuccess() {
+        // Arrange: Set up the mock to find a PhysicalCopyBook to delete.
+        String isbn = "456";
+        PhysicalCopyBook existingBook = new PhysicalCopyBook(isbn, "Title", "Author", 10);
         when(bookRepository.findByIsbn(isbn)).thenReturn(Optional.of(existingBook));
 
         // Act: Call the service method.
