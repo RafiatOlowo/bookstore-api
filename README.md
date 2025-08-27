@@ -95,7 +95,7 @@ From the project's root directory, run the application using the Maven wrapper.
 ```
 ---
 ## Database Schema
-The database uses a single table `books` to store all book types.
+The database uses a single table `book` to store all book types.
 
 | Column Name | Data Type | Description |
 |---|---|---|
@@ -106,8 +106,17 @@ The database uses a single table `books` to store all book types.
 | `stock` | `INT` | The number of books available in stock |
 | `book_type` | `VARCHAR(31)` | The type of book (e.g., PaperbackBook) |
 
-Data Models: Show the data structures. Provide examples of the JSON objects that are sent and received by your API. This helps developers understand the format of the data.
 
+
+A database dump file is included in the project to allow for easy restoration of the application's database schema and data.
+
+**Location**: `backup/bookstore_api_backup.sql`
+
+To restore the database, ensure you have a MySQL server running and use the following command in your terminal:
+
+```bash
+mysql -u [your_username] -p [your_database_name] < backup/bookstore_api_backup.sql
+```
 ---
 
 ## API Endpoints
