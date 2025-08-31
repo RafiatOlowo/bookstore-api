@@ -94,6 +94,11 @@ From the project's root directory, run the application using the Maven wrapper.
 ./mvnw spring-boot:run
 ```
 ---
+
+## Error Handling 
+What happens when things go wrong? The project uses try-catch blocks and conditional checks to handle exceptions and specific error cases. Below is a list of tential error messages and their causes.
+
+---
 ## Database Schema
 The database uses a single table `book` to store all book types.
 
@@ -105,8 +110,6 @@ The database uses a single table `book` to store all book types.
 | `author` | `VARCHAR(255)` | The author of the book |
 | `stock` | `INT` | The number of books available in stock |
 | `book_type` | `VARCHAR(31)` | The type of book (e.g., PaperbackBook) |
-
-
 
 A database dump file is included in the project to allow for easy restoration of the application's database schema and data.
 
@@ -124,10 +127,10 @@ The API provides the following endpoints:
 
 | HTTP Method | Endpoint | Description |
 | --- | --- | --- |
+| POST | /api/books | Create a new book entry in the inventory. |
 | GET | /api/books | Retrieve a list of all books. |
 | GET | /api/books/{isbn} | Retrieve details of a single book by its ISBN. |
-| GET | /api/books/{author} | Retrieve a list of all books written by a specific author.
-| POST | /api/books | Create a new book entry in the inventory. |
+| GET | /api/books/author/{author} | Retrieve a list of all books written by a specific author.
 | PUT | /api/books/{isbn} | Update an existing book's details. |
 | DELETE | /api/books/{isbn} | Delete a book from the inventory. |
 
@@ -136,19 +139,188 @@ The API provides the following endpoints:
 ## Usage
 This section provides practical examples for common API operations using `curl`, a command-line tool for making requests.
 
+### 1. Adding a New Book
 
+This endpoint is used to add a new book to the database. It handles both `Ebook` and `PhysicalCopyBook` types based on the `bookType` field in the JSON body.
 
+* **Request:** `POST /api/books`
+* **Request Body:** A JSON object containing the book details.
+* **Success Response:** Returns a `201 Created` status code with the newly created book object, including the `id` assigned by the database.
+* **Error Response:** Returns a 409 Conflict status if a book with the same ISBN already exists.
+
+**Example `curl` Command (Ebook):**
+```bash
+curl -X POST http://localhost:8080/api/books \
+-H "Content-Type: application/json" \
+-d '{
+    "isbn": "978-0135957059",
+    "title": "The Pragmatic Programmer",
+    "author": "Andrew Hunt, David Thomas",
+    "stock": 100,
+    "bookType": "ebook"
+}'
+```
+**Example `curl` Command (Physical Copy):**
+```bash
+curl -X POST http://localhost:8080/api/books \
+-H "Content-Type: application/json" \
+-d '{
+    "isbn": "978-0134685991",
+    "title": "Clean Code",
+    "author": "Robert C. Martin",
+    "stock": 50,
+    "bookType": "physical_copy"
+}'
+```
+
+### 2.  Retrieving All Books
+
+This endpoint retrieves a list of all books currently available in the database. The list can be empty if no books have been added yet.
+
+* **Request:** `GET /api/books`
+* **Success Response:** Returns a `200 OK` status with a JSON array containing all book objects. The array will be empty if no books exist.
+
+**Example 'curl' command:**
+```bash
+curl http://localhost:8080/api/books
+```
+
+**Example Response Body:**
+```bash
+[
+  {
+    "isbn": "978-0135957059",
+    "title": "The Pragmatic Programmer",
+    "author": "Andrew Hunt, David Thomas",
+    "stock": 100,
+    "bookType": "ebook"
+  },
+  {
+    "isbn": "978-0134685991",
+    "title": "Clean Code",
+    "author": "Robert C. Martin",
+    "stock": 50,
+    "bookType": "physical_copy"
+  }
+]
+```
+
+### 3. Retrieve a Single Book by ISBN
+
+This example shows how to retrieve a specific book by its unique ISBN.
+* **Request:** `GET /books/{isbn}`
+* **Path Variable:** Replace `{isbn}` with the actual ISBN of the book you want to retrieve.
+* **Success Response:** Returns a 200 OK status with the book's details.
+* **Error Response:** If a book with the specified ISBN is not found, the server will return a `404 Not Found` status code response with an empty body.
+
+To get the book with the ISBN `978-0135957059`, you would make a `GET` request to:
+
+```bash
+GET /api/books/978-0135957059
+```
+
+**Example `curl` Command:**
+
+```bash
+curl -X GET http://localhost:8080/api/books/978-0135957059
+```
+
+**Example Response Body:**
+Success Response (200 OK):
+```bash
+{
+    "isbn": "978-0135957059",
+    "title": "The Pragmatic Programmer",
+    "author": "Andrew Hunt, David Thomas",
+    "stock": 100
+}
+```
+
+### 4. Retrieve Books by Author
+This example shows how to retrieve a list of all books written by a specific author.
+* **Request:** `GET	/api/books/author/{author}`
+* **Path Variable:** Replace `{author}` with the name of the author you want to retrieve books for.
+* **Success Response:** Returns a `200 OK` status with a list of book objects. The list may be empty if no books by the author are found.
+
+To get all books by the author "Andrew Hunt", you would make a GET request to:
+
+```bash
+GET /api/books/author/Andrew Hunt
+```
+**Example curl Command:**
+```bash
+curl -X GET "http://localhost:8080/api/books/author/Andrew%20Hunt"
+```
+
+**Example Response Body:**
+Success Response (200 OK):
+```bash
+[
+    {
+        "isbn": "978-0135957059",
+        "title": "The Pragmatic Programmer",
+        "author": "Andrew Hunt, David Thomas",
+        "stock": 100
+    },
+    {
+        "isbn": "978-0201616224",
+        "title": "The Mythical Man-Month",
+        "author": "Andrew Hunt",
+        "stock": 50
+    }
+]
+```
+### 5. Update a Book by ISBN
+This example shows how to update the details of a book in the database using its unique ISBN.  It supports partial updates, meaning you only need to include the fields you wish to change in the request body. Any fields you omit will remain unchanged.
+
+* **Request:** `PUT /api/books/{isbn}`
+* **Path Variable:** Replace `{isbn}` with the ISBN of the book you want to update.
+* **Request Body:** A JSON object containing the fields to be updated.
+* **Success Response:** Returns a `200 OK` status with the updated book's details.
+* **Error Response:** Returns a `404 Not Found` status if a book with the specified ISBN does not exist.
+
+To update the stock of the book with the ISBN `978-0135957059`, you would make a `PUT` request with a JSON body:
+
+```bash
+PUT /api/books/978-0135957059
+```
+**Example `curl` Command:**
+```bash
+curl -X PUT -H "Content-Type: application/json" -d '{ "stock": 110 }' http://localhost:8080/api/books/978-0135957059
+```
+
+**Example Response Body:**
+Success Response (200 OK):
+```bash
+{
+    "isbn": "978-0135957059",
+    "title": "The Pragmatic Programmer",
+    "author": "Andrew Hunt, David Thomas",
+    "stock": 110
+
+}
+```
+
+### 6. Delete a Book by ISBN
+This example shows how to delete a book from the inventory using its unique ISBN.
+* **Request:** `DELETE /api/books/{isbn}`
+* **Path Variable:** Replace `{isbn}` with the actual ISBN of the book to be deleted.
+* **Success Response:** Returns a `204 No Content` status.
+* **Error Response:** Returns a `404 Not Found` if the book does not exist.
+
+To delete the book with the ISBN 978-0135957059, you would make a DELETE request to:
+```bash
+DELETE /api/books/978-0135957059
+```
+
+**Example `curl` command:**
+```bash
+curl -X DELETE http://localhost:8080/api/books/978-0135957059
+```
 ---
-
-## Error Handling 
-What happens when things go wrong? The project uses try-catch blocks and conditional checks to handle exceptions and specific error cases. Below is a list of tential error messages and their causes.
+---
 
 ## Author
-* Name: Rafiat Olowo
+**Name:** Rafiat Olowo
 
 ---
-
-
-
-
-
