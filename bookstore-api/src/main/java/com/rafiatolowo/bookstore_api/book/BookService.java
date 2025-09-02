@@ -31,24 +31,33 @@ public class BookService {
 
     /**
      * Finds a book by its unique ISBN.
-     * This method now returns a single Optional, regardless of whether the
-     * repository method also returns an Optional.
+     *
      * @param isbn The ISBN of the book to find.
      * @return An Optional containing the found book, or an empty Optional if not found.
+     * @throws IllegalArgumentException if the ISBN is null or empty.
      */
     public Optional<Book> findByIsbn(String isbn) {
+        if (isbn == null || isbn.trim().isEmpty()) {
+            throw new IllegalArgumentException("ISBN must not be null or empty");
+        }
         return bookRepository.findByIsbn(isbn);
     }
     
     /**
-     * Adds a new book to the database, including business logic.
+     * Adds a new book to the database.
      * For example, it checks if a book with the same ISBN already exists
      * before saving a new one.
+     * 
      * @param book The book object to save.
      * @return The saved book entity.
      * @throws IllegalStateException if a book with the same ISBN already exists.
+     * @throws IllegalArgumentException if the provided book is null or has a null/empty ISBN.
      */
     public Book addBook(Book book) {
+        if (book == null || book.getIsbn() == null || book.getIsbn().isBlank()) {
+            throw new IllegalArgumentException("Book or its ISBN cannot be null or empty.");
+        }
+        
         // Business logic: Check for duplicates before saving.
         Optional<Book> existingBook = findByIsbn(book.getIsbn());
         if (existingBook.isPresent()) {
@@ -61,20 +70,31 @@ public class BookService {
      * Finds a list of books by a specific author.
      * @param author The name of the author to search for.
      * @return A list of books by the specified author.
+     * @throws IllegalArgumentException if the author is null or empty.
      */
     public List<Book> findBooksByAuthor(String author) {
+        if (author == null || author.isBlank()) {
+            throw new IllegalArgumentException("Author cannot be null or empty.");
+        }
         return bookRepository.findByAuthor(author);
     }
 
      /**
      * Updates an existing book. This method handles partial updates by
      * only updating the fields that are not null in the request body.
+     * 
      * @param isbn The ISBN of the book to update.
      * @param updatedBook The book object with the new values.
      * @return The updated book.
      * @throws IllegalStateException if the book to update is not found.
+     * @throws IllegalArgumentException if the ISBN is null or empty.
      */
     public Book updateBook(String isbn, Book updatedBook) {
+       // Validation: Check for invalid input first
+        if (isbn == null || isbn.isBlank()) {
+            throw new IllegalArgumentException("ISBN cannot be null or empty.");
+        }
+
         Book existingBook = bookRepository.findByIsbn(isbn)
                 .orElseThrow(() -> new IllegalStateException("Book with ISBN " + isbn + " not found."));
                 
@@ -95,10 +115,16 @@ public class BookService {
 
     /**
      * Deletes a book from the database.
+     * 
      * @param isbn The ISBN of the book to delete.
      * @return true if the book was deleted, false otherwise.
+     * @throws IllegalArgumentException if the ISBN is null or empty.
      */
     public boolean deleteBookByIsbn(String isbn) {
+        if (isbn == null || isbn.isBlank()) {
+            throw new IllegalArgumentException("ISBN cannot be null or empty.");
+        }
+
         Optional<Book> book = bookRepository.findByIsbn(isbn);
         if (book.isPresent()) {
             bookRepository.delete(book.get());
