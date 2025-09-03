@@ -4,12 +4,27 @@ As a bookstore inventory manager, I want to have a reliable system for managing 
 
 This is the Bookstore API, a Spring Boot application designed to manage a digital catalog of books. It provides a full set of RESTful endpoints to create, retrieve, update, and delete book records, serving as the backend for a bookstore inventory management system.
 
+## Features
+
+This API provides a comprehensive set of endpoints for managing books in a bookstore database. Key features include:
+
+* **CRUD Operations:** Full functionality to Create, Read, Update, and Delete book records.
+
+* **Search and Retrieval:** Efficient retrieval of books by `isbn` or by a specific `author`.
+
+* **Input Validation:** The service class includes input validation to prevent errors. All incoming requests for creating, updating, or deleting books are checked for null or empty values to ensure data integrity and improve the API's reliability.
+
+* **Error Handling:** What happens when things go wrong? The project uses try-catch blocks and conditional checks to handle exceptions and specific error cases.
+
+* **Unit Tests:** A comprehensive suite of unit tests has been implemented to guarantee the correctness of all business logic, including the validation rules. This ensures the API behaves as expected under various conditions.
+
 ---
 
 <details>
   <summary>Table of Contents</summary>
   <ol>
     <li><a href="#bookstore-api">BookStore API</a></li>
+    <li><a href="#features">Features</a></li>
     <li>
       <a href="#getting-started">Getting Started</a>
       <ul>
@@ -95,10 +110,6 @@ From the project's root directory, run the application using the Maven wrapper.
 ```
 ---
 
-## Error Handling 
-What happens when things go wrong? The project uses try-catch blocks and conditional checks to handle exceptions and specific error cases. Below is a list of tential error messages and their causes.
-
----
 ## Database Schema
 The database uses a single table `book` to store all book types.
 
@@ -135,7 +146,6 @@ The API provides the following endpoints:
 | DELETE | /api/books/{isbn} | Delete a book from the inventory. |
 
 ---
-
 ## Usage
 This section provides practical examples for common API operations using `curl`, a command-line tool for making requests.
 
