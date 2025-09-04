@@ -87,7 +87,8 @@ public class BookService {
      * @param updatedBook The book object with the new values.
      * @return The updated book.
      * @throws IllegalStateException if the book to update is not found.
-     * @throws IllegalArgumentException if the ISBN is null or empty.
+     * @throws IllegalArgumentException if the ISBN is null or empty, or if an
+     * attempt is made to update immutable fields like ID or bookType.
      */
     public Book updateBook(String isbn, Book updatedBook) {
        // Validation: Check for invalid input first
@@ -97,7 +98,19 @@ public class BookService {
 
         Book existingBook = bookRepository.findByIsbn(isbn)
                 .orElseThrow(() -> new IllegalStateException("Book with ISBN " + isbn + " not found."));
-                
+        
+        // Validate that immutable fields are not being updated.
+        // The ID is generated, and the book's type is part of its identity,
+        // so neither should be changeable.
+        if (updatedBook.getId() != null) {
+            throw new IllegalArgumentException("Book ID cannot be updated.");
+        }
+
+        // Used getClass() to prevent changing the book type.
+        // This is because bookType is a JPA discriminator, not a field.
+        if (!existingBook.getClass().equals(updatedBook.getClass())) {
+            throw new IllegalArgumentException("Book type cannot be updated.");
+        }
         // Only update fields that are not null in the request body
         if (updatedBook.getTitle() != null) {
             existingBook.setTitle(updatedBook.getTitle());
