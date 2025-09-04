@@ -274,4 +274,68 @@ public class BookServiceUnitTest {
         verify(bookRepository, times(1)).findByIsbn(isbn);
         verify(bookRepository, never()).delete(any(Book.class));
     }
+
+    // Tests for Invalid Input
+
+    @Test
+    void findByIsbn_withNullIsbn_throwsIllegalArgumentException() {
+        // Assert that the service method throws IllegalArgumentException when a null ISBN is provided.
+        assertThrows(IllegalArgumentException.class, () -> bookService.findByIsbn(null));
+        // Verify that the repository method was never called.
+        verify(bookRepository, never()).findByIsbn(any());
+    }
+
+    @Test
+    void findByIsbn_withEmptyIsbn_throwsIllegalArgumentException() {
+        // Assert that the service method throws IllegalArgumentException when an empty ISBN is provided.
+        assertThrows(IllegalArgumentException.class, () -> bookService.findByIsbn(""));
+        // Verify that the repository method was never called.
+        verify(bookRepository, never()).findByIsbn(any());
+    }
+
+    @Test
+    void addBook_withNullBook_throwsIllegalArgumentException() {
+        // Assert that the service method throws IllegalArgumentException when a null Book is provided.
+        assertThrows(IllegalArgumentException.class, () -> bookService.addBook(null));
+        // Verify that the repository method was never called.
+        verify(bookRepository, never()).save(any(Book.class));
+    }
+
+    @Test
+    void addBook_withNullIsbn_throwsIllegalArgumentException() {
+        // Arrange: Create a book with a null ISBN.
+        EBook bookWithNullIsbn = new EBook(null, "Test Title", "Test Author", 10);
+        
+        // Assert that the service method throws IllegalArgumentException.
+        assertThrows(IllegalArgumentException.class, () -> bookService.addBook(bookWithNullIsbn));
+        // Verify that the repository method was never called.
+        verify(bookRepository, never()).save(any(Book.class));
+    }
+
+    @Test
+    void findBooksByAuthor_withNullAuthor_throwsIllegalArgumentException() {
+        // Assert that the service method throws IllegalArgumentException when a null author is provided.
+        assertThrows(IllegalArgumentException.class, () -> bookService.findBooksByAuthor(null));
+        // Verify that the repository method was never called.
+        verify(bookRepository, never()).findByAuthor(any());
+    }
+
+    @Test
+    void updateBook_withNullIsbn_throwsIllegalArgumentException() {
+        // Arrange: Create a book object for the update.
+        EBook updatedBookData = new EBook(null, "New Title", "New Author", 100);
+        
+        // Assert that the service method throws IllegalArgumentException when a null ISBN is provided.
+        assertThrows(IllegalArgumentException.class, () -> bookService.updateBook(null, updatedBookData));
+        // Verify that the repository method was never called.
+        verify(bookRepository, never()).findByIsbn(any());
+    }
+
+    @Test
+    void deleteBookByIsbn_withNullIsbn_throwsIllegalArgumentException() {
+        // Assert that the service method throws IllegalArgumentException when a null ISBN is provided.
+        assertThrows(IllegalArgumentException.class, () -> bookService.deleteBookByIsbn(null));
+        // Verify that the repository method was never called.
+        verify(bookRepository, never()).findByIsbn(any());
+    }
 }
