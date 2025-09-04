@@ -1,16 +1,17 @@
 # BookStore API
 This is the Bookstore API, a RESTful service designed to manage a digital catalog of books. Built with Spring Boot, it provides a complete set of endpoints to create, retrieve, update, and delete book records, serving as the backend for a robust inventory management system.
 
-## Features
+## Core Functionality
 This API provides a comprehensive set of endpoints for managing books in a bookstore database. Key features include:
 
-* **CRUD Operations:** Full functionality to Create, Read, Update, and Delete book records.
+* **CRUD Operations:** Full functionality to **Create**, **Read**, **Update**, and **Delete** book records.
 
-* **Search and Retrieval:** Efficient retrieval of books by `isbn` or by a specific `author`.
+* **Search and Retrieval:** Efficient retrieval of books by **ISBN** or by a specific **author**.
 
-* **Input Validation:** The service class includes input validation to prevent errors. All incoming requests for creating, updating, or deleting books are checked for null or empty values to ensure data integrity and improve the API's reliability.
+* **Input Validation:** All incoming requests for creating, updating, or deleting books are checked to ensure data integrity and improve the API's reliability.
 
-* **Error Handling:** What happens when things go wrong? The project uses try-catch blocks and conditional checks to handle exceptions and specific error cases.
+* **Error Handling:** 
+What happens when things go wrong? The project uses try-catch blocks and conditional checks to handle exceptions and specific error cases.
 
 * **Unit Tests:** A comprehensive suite of unit tests has been implemented to guarantee the correctness of all business logic, including the validation rules. This ensures the API behaves as expected under various conditions.
 
@@ -20,7 +21,8 @@ This API provides a comprehensive set of endpoints for managing books in a books
   <summary>Table of Contents</summary>
   <ol>
     <li><a href="#bookstore-api">BookStore API</a></li>
-    <li><a href="#features">Features</a></li>
+    <li><a href="#core-functionality">Core Functionality</a></li>
+    <li><a href="#CRUD">Features</a></li>
     <li>
       <a href="#getting-started">Getting Started</a>
       <ul>
