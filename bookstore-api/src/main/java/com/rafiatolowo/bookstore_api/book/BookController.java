@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The REST controller for the Bookstore API.
@@ -37,30 +38,36 @@ public class BookController {
     /**
      * Endpoint to add a new book to the database.
      * POST /api/books
+     * The try-catch block is used to handle a specific business exception.
      * @param book The book object received from the request body.
-     * @return A ResponseEntity with the created book and a CREATED status, or a CONFLICT status if the book already exists.
+     * @return A ResponseEntity with the created book and a CREATED status, or a CONFLICT status with an error message.
      */
     @PostMapping
-    public ResponseEntity<Book> addBook(@RequestBody Book book) {
+    public ResponseEntity<Object> addBook(@RequestBody Book book) {
         try {
             Book createdBook = bookService.addBook(book);
             return new ResponseEntity<>(createdBook, HttpStatus.CREATED);
         } catch (IllegalStateException e) {
-            // Handle the case where the book already exists
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            // Return the exception message in the response body.
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
     }
 
-    /**
+/**
      * GET endpoint to retrieve a single book by its ISBN.
+     * The Optional is handled with an if-else block to provide a specific
+     * error response when the book is not found.
      * @param isbn The unique ISBN of the book.
-     * @return The book with the specified ISBN, or a 404 Not Found error.
+     * @return The book with the specified ISBN, or a 404 Not Found error with a message.
      */
     @GetMapping("/{isbn}")
-    public ResponseEntity<Book> getBookByIsbn(@PathVariable String isbn) {
-        return bookService.findByIsbn(isbn)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Object> getBookByIsbn(@PathVariable String isbn) {
+        Optional<Book> book = bookService.findByIsbn(isbn);
+        if (book.isPresent()) {
+            return ResponseEntity.ok(book.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Book not found with ISBN: " + isbn);
+        }
     }
 
     /**
@@ -77,31 +84,34 @@ public class BookController {
     /**
      * PATCH endpoint to partially update an existing book by its ISBN.
      * This method modifies one or more fields of an existing book.
+     * A try-catch block handles the case where the book to update is not found.
      * @param isbn The ISBN of the book to update.
      * @param updatedBook The updated book object containing the fields to be modified.
-     * @return The updated book, or a 404 Not Found error if the book does not exist.
-    */
+     * @return The updated book, or a 404 Not Found error with a message.
+     */
     @PatchMapping("/{isbn}")
-    public ResponseEntity<Book> updateBook(@PathVariable String isbn, @RequestBody Book updatedBook) {
+    public ResponseEntity<Object> updateBook(@PathVariable String isbn, @RequestBody Book updatedBook) {
         try {
             Book book = bookService.updateBook(isbn, updatedBook);
             return ResponseEntity.ok(book);
         } catch (IllegalStateException e) {
-            return ResponseEntity.notFound().build();
+            // Return the exception message in the response body.
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
     /**
      * DELETE endpoint to delete a book from the inventory by its ISBN.
+     * The boolean return value from the service is checked to determine the response.
      * @param isbn The ISBN of the book to delete.
-     * @return A 204 No Content status on success, or a 404 Not Found error.
+     * @return A 204 No Content status on success, or a 404 Not Found error with a message.
      */
     @DeleteMapping("/{isbn}")
-    public ResponseEntity<Void> deleteBookByIsbn(@PathVariable String isbn) {
+    public ResponseEntity<String> deleteBookByIsbn(@PathVariable String isbn) {
         if (bookService.deleteBookByIsbn(isbn)) {
             return ResponseEntity.noContent().build();
         } else {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Book not found with ISBN: " + isbn);
         }
     }
 }
