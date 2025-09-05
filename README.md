@@ -39,7 +39,28 @@ What happens when things go wrong? The project uses try-catch blocks and conditi
     </li>
     <li><a href="#database-schema">Database Schema</a></li>
     <li><a href="#api-endpoints">API Endpoints</a></li>
-    <li><a href="#usage">Usage</a></li>
+    <li><a href="#api-documentation-swagger-ui">API Documentation (Swagger UI)</a></li>
+    <li>
+      <a href="#api-usage">API Usage</a>
+      <ul>
+        <li><a href="#adding-a-new-book">1. Adding a New Book</a></li>
+      </ul>
+      <ul>
+        <li><a href="#retrieving-all-books">2. Retrieving All Books</a></li>
+      </ul>
+      <ul>
+        <li><a href="#retrieve-a-single-book-by-isbn">3. Retrieve a Single Book by ISBN</a></li>
+      </ul>
+      <ul>
+        <li><a href="#retrieve-books-by-author">4. Retrieve Books by Author</a></li>
+      </ul>
+      <ul>
+        <li><a href="#update-a-book-by-isbn">5. Update a Book by ISBN</a></li>
+      </ul>
+      <ul>
+        <li><a href="#delete-a-book-by-isbn">6. Delete a Book by ISBN</a></li>
+      </ul>
+    </li>
     <li><a href="#author">Author</a></li>
   </ol>
 </details>
@@ -114,14 +135,14 @@ From the project's root directory, run the application using the Maven wrapper. 
 The database uses a single table `book` to store all book types using a **Single Table Inheritance** strategy, which maps different types of books to a single table.
 
 
-| Column Name | Data Type | Description |
-|---|---|---|
-| `id` | `BIGINT` | Unique identifier (Primary Key) |
-| `isbn` | `VARCHAR(255)` | Unique identifier for the book. This column has a unique constraint. |
-| `title` | `VARCHAR(255)` | The title of the book |
-| `author` | `VARCHAR(255)` | The author of the book |
-| `stock` | `INT` | The number of books available in stock |
-| `book_type` | `VARCHAR(31)` | The discriminator column that indicates the specific book type (e.g., `Ebook` and `PhysicalCopyBook`) |
+| Column Name | Data Type | Constraints | Description |
+|---|---|---|---|
+| `id` | `BIGINT` |`PRIMARY KEY`, `AUTO_INCREMENT`| Unique identifier for each book entry (Primary Key) |
+| `isbn` | `VARCHAR(255)` |`NOT NULL`, `UNIQUE`| The International Standard Book Number. This is a critical, unique identifier that must not be empty. This column has a unique constraint. |
+| `title` | `VARCHAR(255)` |`NOT NULL`| The title of the book |
+| `author` | `VARCHAR(255)` |`NOT NULL`| The author of the book |
+| `stock` | `INT` |`NOT NULL`, `DEFAULT 0`| The current number of copies in stock. All entries will have a specified stock count, even if it's zero. |
+| `book_type` | `VARCHAR(31)` |`NOT NULL`| The discriminator column that indicates the specific book type (e.g., `Ebook` and `PhysicalCopyBook`) |
 
 A database dump file is included in the project to allow for easy restoration of the application's database schema and data.
 
@@ -158,10 +179,10 @@ You can access the API documentation at the following URL after the application 
 
 `http://localhost:8080/swagger-ui.html`
 
-## Usage
+## API Usage
 This section provides practical examples of the API operations using `curl`, a command-line tool for making requests.
 
-### 1. Adding a New Book
+<h3 id="adding-a-new-book">1. Adding a New Book</h3>
 
 This endpoint is used to add a new book to the database. It handles both `Ebook` and `PhysicalCopyBook` types based on the `bookType` field in the JSON body.
 
@@ -197,7 +218,7 @@ curl -X POST http://localhost:8080/api/books \
 }'
 ```
 
-### 2.  Retrieving All Books
+<h3 id="retrieving-all-books">2. Retrieving All Books</h3>
 
 This endpoint retrieves a list of all books currently available in the database.
 
@@ -229,7 +250,7 @@ curl http://localhost:8080/api/books
 ]
 ```
 
-### 3. Retrieve a Single Book by ISBN
+<h3 id="retrieve-a-single-book-by-isbn">3. Retrieve a Single Book by ISBN</h3>
 
 This endpoint retrieves a specific book using its unique `isbn`.
 
@@ -257,7 +278,7 @@ curl -X GET http://localhost:8080/api/books/978-0135957059
 }
 ```
 
-### 4. Retrieve Books by Author
+<h3 id="retrieve-books-by-author">4. Retrieve Books by Author</h3>
 This endpoint retrieves a list of all books written by a specific author.
 
 * **Request:** `GET	/api/books/author/{author}`
@@ -289,7 +310,8 @@ curl -X GET "http://localhost:8080/api/books/author/Andrew%20Hunt"
     }
 ]
 ```
-### 5. Update a Book by ISBN
+<h3 id="update-a-book-by-isbn">5. Update a Book by ISBN</h3>
+
 This endpoint updates the details of an existing book using its unique ISBN. It supports partial updates, so you only need to include the fields you want to change in the request body. Any omitted fields will remain unchanged.
 
 * **Request:** `PATCH /api/books/{isbn}`
@@ -317,7 +339,8 @@ curl -X PATCH -H "Content-Type: application/json" -d '{ "stock": 110 }' http://l
 }
 ```
 
-### 6. Delete a Book by ISBN
+<h3 id="delete-a-book-by-isbn">6. Delete a Book by ISBN</h3>
+
 This endpoint deletes a book from the inventory using its unique ISBN.
 
 * **Request:** `DELETE /api/books/{isbn}`
