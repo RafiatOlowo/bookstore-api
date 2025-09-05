@@ -142,7 +142,7 @@ The database uses a single table `book` to store all book types using a **Single
 | `title` | `VARCHAR(255)` |`NOT NULL`| The title of the book |
 | `author` | `VARCHAR(255)` |`NOT NULL`| The author of the book |
 | `stock` | `INT` |`NOT NULL`, `DEFAULT 0`| The current number of copies in stock. All entries will have a specified stock count, even if it's zero. |
-| `book_type` | `VARCHAR(31)` |`NOT NULL`| The discriminator column that indicates the specific book type (e.g., `Ebook` and `PhysicalCopyBook`) |
+| `book_type` | `VARCHAR(31)` |`NOT NULL`| The discriminator column that indicates the specific book type (e.g., `ebook` and `physical_copy`) |
 
 A database dump file is included in the project to allow for easy restoration of the application's database schema and data.
 
