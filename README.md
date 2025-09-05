@@ -114,14 +114,14 @@ From the project's root directory, run the application using the Maven wrapper. 
 The database uses a single table `book` to store all book types using a **Single Table Inheritance** strategy, which maps different types of books to a single table.
 
 
-| Column Name | Data Type | Description |
-|---|---|---|
-| `id` | `BIGINT` | Unique identifier (Primary Key) |
-| `isbn` | `VARCHAR(255)` | Unique identifier for the book. This column has a unique constraint. |
-| `title` | `VARCHAR(255)` | The title of the book |
-| `author` | `VARCHAR(255)` | The author of the book |
-| `stock` | `INT` | The number of books available in stock |
-| `book_type` | `VARCHAR(31)` | The discriminator column that indicates the specific book type (e.g., `Ebook` and `PhysicalCopyBook`) |
+| Column Name | Data Type | Constraints | Description |
+|---|---|---|---|
+| `id` | `BIGINT` |`PRIMARY KEY`, `AUTO_INCREMENT`| Unique identifier for each book entry (Primary Key) |
+| `isbn` | `VARCHAR(255)` |`NOT NULL`, `UNIQUE`| The International Standard Book Number. This is a critical, unique identifier that must not be empty. This column has a unique constraint. |
+| `title` | `VARCHAR(255)` |`NOT NULL`| The title of the book |
+| `author` | `VARCHAR(255)` |`NOT NULL`| The author of the book |
+| `stock` | `INT` |`NOT NULL`, `DEFAULT 0`| The current number of copies in stock. All entries will have a specified stock count, even if it's zero. |
+| `book_type` | `VARCHAR(31)` || The discriminator column that indicates the specific book type (e.g., `Ebook` and `PhysicalCopyBook`) |
 
 A database dump file is included in the project to allow for easy restoration of the application's database schema and data.
 
