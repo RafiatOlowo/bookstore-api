@@ -33,13 +33,13 @@ DROP TABLE IF EXISTS `book`;
 CREATE TABLE `book` (
   `book_type` varchar(31) NOT NULL,
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `author` varchar(255) DEFAULT NULL,
-  `isbn` varchar(255) DEFAULT NULL,
-  `stock` int DEFAULT NULL,
-  `title` varchar(255) DEFAULT NULL,
+  `author` varchar(255) NOT NULL,
+  `isbn` varchar(255) NOT NULL,
+  `stock` int NOT NULL,
+  `title` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `UKehpdfjpu1jm3hijhj4mm0hx9h` (`isbn`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -48,7 +48,7 @@ CREATE TABLE `book` (
 
 LOCK TABLES `book` WRITE;
 /*!40000 ALTER TABLE `book` DISABLE KEYS */;
-INSERT INTO `book` VALUES ('ebook',3,'Andrew Hunt, David Thomas','978-0135957059',100,'The Pragmatic Programmer');
+INSERT INTO `book` VALUES ('ebook',1,'J.R.R. Tolkien','978-0544003415',500,'The Lord of the Rings'),('physical_copy',2,'George Orwell','978-0451524935',150,'1984'),('ebook',3,'Frank Herbert','978-0441172719',750,'Dune'),('physical_copy',4,'Harper Lee','978-0061120084',200,'To Kill a Mockingbird'),('ebook',5,'Eric Ries','978-0307887894',900,'The Lean Startup'),('physical_copy',6,'Robert C. Martin','978-0132350884',75,'Clean Code: A Handbook of Agile Software Craftsmanship');
 /*!40000 ALTER TABLE `book` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -61,4 +61,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-08-31 21:32:12
+-- Dump completed on 2025-09-05 17:01:02
