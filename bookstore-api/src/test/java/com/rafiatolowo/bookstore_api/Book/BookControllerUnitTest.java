@@ -18,7 +18,7 @@ import static org.mockito.Mockito.times;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -160,8 +160,8 @@ public class BookControllerUnitTest {
         // Tell the mock service to return the updated book
         when(bookService.updateBook(any(String.class), any(Book.class))).thenReturn(updatedBook);
         
-        // Act & Assert: Perform a PUT request and verify the response
-        mockMvc.perform(put("/api/books/{isbn}", "978-0134685991")
+        // Act & Assert: Perform a PATCH request and verify the response
+        mockMvc.perform(patch("/api/books/{isbn}", "978-0134685991")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updatedBook)))
                 .andExpect(status().isOk())
@@ -176,8 +176,8 @@ public class BookControllerUnitTest {
         // Tell the mock service to throw an exception when the book is not found
         when(bookService.updateBook(any(String.class), any(Book.class))).thenThrow(new IllegalStateException());
 
-        // Act & Assert: Perform a PUT request and verify a NOT_FOUND status is returned
-        mockMvc.perform(put("/api/books/{isbn}", "978-9999999999")
+        // Act & Assert: Perform a PATCH request and verify a NOT_FOUND status is returned
+        mockMvc.perform(patch("/api/books/{isbn}", "978-9999999999")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(nonExistentBook)))
                 .andExpect(status().isNotFound());
