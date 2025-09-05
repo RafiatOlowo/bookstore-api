@@ -55,6 +55,8 @@ Follow these steps to set up and run the project on your local machine.
 * **Maven**: The build automation tool.
 * **Spring Data JPA**: For data persistence and database interaction.
 * **MySQL**: The relational database management system.
+* **H2 Database:** An in-memory database used for running tests.
+* **SpringDoc OpenAPI / Swagger UI:** For generating interactive API documentation.
 * **Git & GitHub**: For version control.
 
 ### Database Setup
@@ -101,7 +103,7 @@ Open your web browser and navigate to this [start.spring.io](https://start.sprin
 3. Activate the local profile. In the main application.properties file, add `spring.config.import=optional:./<local-file-name>.properties` to tell Spring to load the local configuration. This allows you to override any default properties with your local-specific, sensitive information.
 
 ### Run the Application
-From the project's root directory, run the application using the Maven wrapper.
+From the project's root directory, run the application using the Maven wrapper. The application will start on port 8080 by default.
 
 ```bash
 ./mvnw spring-boot:run
@@ -109,16 +111,17 @@ From the project's root directory, run the application using the Maven wrapper.
 ---
 
 ## Database Schema
-The database uses a single table `book` to store all book types.
+The database uses a single table `book` to store all book types using a **Single Table Inheritance** strategy, which maps different types of books to a single table.
+
 
 | Column Name | Data Type | Description |
 |---|---|---|
 | `id` | `BIGINT` | Unique identifier (Primary Key) |
-| `isbn` | `VARCHAR(255)` | Unique identifier for the book |
+| `isbn` | `VARCHAR(255)` | Unique identifier for the book. This column has a unique constraint. |
 | `title` | `VARCHAR(255)` | The title of the book |
 | `author` | `VARCHAR(255)` | The author of the book |
 | `stock` | `INT` | The number of books available in stock |
-| `book_type` | `VARCHAR(31)` | The type of book (e.g., Ebook and PhysicalCopyBook) |
+| `book_type` | `VARCHAR(31)` | The discriminator column that indicates the specific book type (e.g., `Ebook` and `PhysicalCopyBook`) |
 
 A database dump file is included in the project to allow for easy restoration of the application's database schema and data.
 
@@ -148,7 +151,13 @@ The API provides the following endpoints:
 **Authentication:**
 This API does not require authentication for public access.
 
----
+## API Documentation (Swagger UI)
+This API is fully documented using **Swagger UI**, which provides a user-friendly interface to explore and test all available endpoints directly from your browser. This tool helps you understand the request and response structures for each endpoint.
+
+You can access the API documentation at the following URL after the application has started:
+
+`http://localhost:8080/swagger-ui.html`
+
 ## Usage
 This section provides practical examples of the API operations using `curl`, a command-line tool for making requests.
 
