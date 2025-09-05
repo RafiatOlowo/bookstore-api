@@ -75,12 +75,13 @@ public class BookController {
     }
 
     /**
-     * PUT endpoint to update an existing book by its ISBN.
+     * PATCH endpoint to partially update an existing book by its ISBN.
+     * This method modifies one or more fields of an existing book.
      * @param isbn The ISBN of the book to update.
-     * @param updatedBook The updated book object.
-     * @return The updated book, or a 404 Not Found error.
-     */
-    @PutMapping("/{isbn}")
+     * @param updatedBook The updated book object containing the fields to be modified.
+     * @return The updated book, or a 404 Not Found error if the book does not exist.
+    */
+    @PatchMapping("/{isbn}")
     public ResponseEntity<Book> updateBook(@PathVariable String isbn, @RequestBody Book updatedBook) {
         try {
             Book book = bookService.updateBook(isbn, updatedBook);

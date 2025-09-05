@@ -22,7 +22,6 @@ What happens when things go wrong? The project uses try-catch blocks and conditi
   <ol>
     <li><a href="#bookstore-api">BookStore API</a></li>
     <li><a href="#core-functionality">Core Functionality</a></li>
-    <li><a href="#CRUD">Features</a></li>
     <li>
       <a href="#getting-started">Getting Started</a>
       <ul>
@@ -74,6 +73,7 @@ CREATE DATABASE IF NOT EXISTS bookstore_db;
 
 ### Initialise Project
 1. Go to Spring Initializr
+
 Open your web browser and navigate to this [start.spring.io](https://start.spring.io/).
 
 2. Configure Project: On the Spring Initializr page, configure  project's basic settings.
@@ -82,7 +82,7 @@ Open your web browser and navigate to this [start.spring.io](https://start.sprin
     * Spring Boot: latest stable version.
     * Project Metadata: Fill in project details. 
     * Packaging: `Jar`.
-    * Java: Java 17 or a higher version.
+    * Java: `Java 17` or a higher version.
 
 3. Add Dependencies: Add the following dependencies.
     * Spring Web: For building web applications.
@@ -118,7 +118,7 @@ The database uses a single table `book` to store all book types.
 | `title` | `VARCHAR(255)` | The title of the book |
 | `author` | `VARCHAR(255)` | The author of the book |
 | `stock` | `INT` | The number of books available in stock |
-| `book_type` | `VARCHAR(31)` | The type of book (e.g., PaperbackBook) |
+| `book_type` | `VARCHAR(31)` | The type of book (e.g., Ebook and PhysicalCopyBook) |
 
 A database dump file is included in the project to allow for easy restoration of the application's database schema and data.
 
@@ -140,12 +140,17 @@ The API provides the following endpoints:
 | GET | /api/books | Retrieve a list of all books. |
 | GET | /api/books/{isbn} | Retrieve details of a single book by its ISBN. |
 | GET | /api/books/author/{author} | Retrieve a list of all books written by a specific author.
-| PUT | /api/books/{isbn} | Update an existing book's details. |
+| PATCH | /api/books/{isbn} | Partially update an existing book's details. |
 | DELETE | /api/books/{isbn} | Delete a book from the inventory. |
+
+**Base URL:** `http://localhost:8080/api/books`
+
+**Authentication:**
+This API does not require authentication for public access.
 
 ---
 ## Usage
-This section provides practical examples for common API operations using `curl`, a command-line tool for making requests.
+This section provides practical examples of the API operations using `curl`, a command-line tool for making requests.
 
 ### 1. Adding a New Book
 
@@ -278,7 +283,7 @@ curl -X GET "http://localhost:8080/api/books/author/Andrew%20Hunt"
 ### 5. Update a Book by ISBN
 This endpoint updates the details of an existing book using its unique ISBN. It supports partial updates, so you only need to include the fields you want to change in the request body. Any omitted fields will remain unchanged.
 
-* **Request:** `PUT /api/books/{isbn}`
+* **Request:** `PATCH /api/books/{isbn}`
 * **Path Variable:** Replace `{isbn}` with the ISBN of the book to update.
 * **Request Body:** A JSON object containing the fields to be updated (`title`, `author`, or `stock`).
 * **Success Response:** Returns a `200 OK` status with the updated book's details in the response body.
@@ -289,7 +294,7 @@ This endpoint updates the details of an existing book using its unique ISBN. It 
 * **Example `curl` Command:** To update the stock of the book with the ISBN `978-0135957059`
 
 ```bash
-curl -X PUT -H "Content-Type: application/json" -d '{ "stock": 110 }' http://localhost:8080/api/books/978-0135957059
+curl -X PATCH -H "Content-Type: application/json" -d '{ "stock": 110 }' http://localhost:8080/api/books/978-0135957059
 ```
 
 * **Example Response Body:**
