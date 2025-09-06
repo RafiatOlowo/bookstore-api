@@ -11,12 +11,12 @@ This API provides a comprehensive set of endpoints for managing books in a books
 * **Input Validation:** All incoming requests for creating, updating, or deleting books are checked to ensure data integrity and improve the API's reliability.
 
 * **Error Handling:** 
-This project uses a centralized, global exception handling mechanism to ensure a consistent and user-friendly experience when errors occur. Instead of handling exceptions in every single controller method.
+This project uses a centralized **global exception handling** mechanism to ensure a consistent and user-friendly experience when errors occur. Instead of handling exceptions in every single controller method.
 
-* **Test Suite:** To ensure the reliability and correctness of the API, this project includes a comprehensive test suite. To run the tests, execute the following command:
-```bash
-./mvnw clean test
-```
+* **Test Suite:** To ensure the reliability and correctness of the API, this project includes a comprehensive test suite. To run the tests, execute this command `./mvnw clean test`
+
+* **Project Architecture:**
+This application aligns with the five SOLID principles of object-oriented design. This adherence ensures the codebase is maintainable, scalable, and easy to understand.
 
 ---
 
@@ -84,12 +84,7 @@ Follow these steps to set up and run the project on your local machine.
 * **Git & GitHub**: For version control.
 
 ### Database Setup
-1. Login to MySQL:
-
-```sh
-mysql -u root -p
-```
-> :bulb: **Note:** If your root user doesn't have a password set, omit the `-p` flag.
+1. Login to MySQL: `mysql -u root -p`. If your root user doesn't have a password set, omit the `-p` flag.
 
 2. Create the database running the following SQL commands:
 
@@ -127,11 +122,8 @@ Open your web browser and navigate to this [start.spring.io](https://start.sprin
 3. Activate the local profile. In the main application.properties file, add `spring.config.import=optional:./<local-file-name>.properties` to tell Spring to load the local configuration. This allows you to override any default properties with your local-specific, sensitive information.
 
 ### Run the Application
-From the project's root directory, run the application using the Maven wrapper. The application will start on port 8080 by default.
+From the project's root directory, run the application using the Maven wrapper `./mvnw spring-boot:run`. The application will start on port 8080 by default.
 
-```bash
-./mvnw spring-boot:run
-```
 ---
 
 ## Database Schema
