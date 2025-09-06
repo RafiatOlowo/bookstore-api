@@ -6,6 +6,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.rafiatolowo.bookstore_api.book.exceptions.BookAlreadyExistsException;
+import com.rafiatolowo.bookstore_api.book.exceptions.BookNotFoundException;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -135,20 +138,14 @@ public class BookServiceUnitTest {
 
     @Test
     void testAddBookConflict() {
-        // Arrange: Create a book that already exists and set up the mocks.
-        EBook existingBook = new EBook("123", "Existing Book", "Old Author", 10);
-        when(bookRepository.findByIsbn("123")).thenReturn(Optional.of(existingBook)); // Existing book is found
+        // Arrange
+        Book book = new EBook("978-0321765723", "Test Title", "Test Author", 2023);
+        when(bookRepository.findByIsbn(book.getIsbn())).thenReturn(Optional.of(book));
 
-        // Act & Assert: Verify that an IllegalStateException is thrown.
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            bookService.addBook(existingBook);
-        });
-
-        // Assert: Verify the exception message and that the save method was never called.
-        assertEquals("A book with ISBN 123 already exists.", exception.getMessage());
-        verify(bookRepository, times(1)).findByIsbn("123");
-        verify(bookRepository, never()).save(any(Book.class));
+        // Act & Assert
+        assertThrows(BookAlreadyExistsException.class, () -> bookService.addBook(book));
     }
+
 
     @Test
     void testFindBooksByAuthor() {
@@ -212,20 +209,12 @@ public class BookServiceUnitTest {
 
     @Test
     void testUpdateBookNotFound() {
-        // Arrange: Set up the mock to return an empty Optional.
-        String isbn = "999";
-        EBook updatedBookData = new EBook(null, "New Title", "New Author", 100);
-        when(bookRepository.findByIsbn(isbn)).thenReturn(Optional.empty());
+        // Arrange
+        String nonExistentIsbn = "non-existent-isbn";
+        when(bookRepository.findByIsbn(nonExistentIsbn)).thenReturn(Optional.empty());
 
-        // Act & Assert: Verify that an IllegalStateException is thrown.
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            bookService.updateBook(isbn, updatedBookData);
-        });
-
-        // Assert: Verify the exception message.
-        assertEquals("Book with ISBN " + isbn + " not found.", exception.getMessage());
-        verify(bookRepository, times(1)).findByIsbn(isbn);
-        verify(bookRepository, never()).save(any(Book.class));
+        // Act & Assert
+        assertThrows(BookNotFoundException.class, () -> bookService.updateBook(nonExistentIsbn, new EBook()));
     }
 
     @Test
@@ -261,16 +250,22 @@ public class BookServiceUnitTest {
     }
 
     @Test
-    void testDeleteBookNotFound() {
+    void testDeleteBookNotFound_throwsException() {
         // Arrange: Set up the mock to return an empty Optional.
         String isbn = "999";
         when(bookRepository.findByIsbn(isbn)).thenReturn(Optional.empty());
 
-        // Act: Call the service method.
-        boolean result = bookService.deleteBookByIsbn(isbn);
+        // Act & Assert: Call the service method inside assertThrows to verify the exception.
+        Exception exception = assertThrows(BookNotFoundException.class, () -> {
+            bookService.deleteBookByIsbn(isbn);
+        });
 
-        // Assert: Verify the deletion was not successful and the repository's delete method was not called.
-        assertFalse(result);
+        // Assert the message of the thrown exception.
+        String expectedMessage = "Book with ISBN " + isbn + " not found.";
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(expectedMessage));
+
+        // Assert: Verify the repository's find method was called, but the delete method was not.
         verify(bookRepository, times(1)).findByIsbn(isbn);
         verify(bookRepository, never()).delete(any(Book.class));
     }

@@ -11,9 +11,12 @@ This API provides a comprehensive set of endpoints for managing books in a books
 * **Input Validation:** All incoming requests for creating, updating, or deleting books are checked to ensure data integrity and improve the API's reliability.
 
 * **Error Handling:** 
-What happens when things go wrong? The project uses try-catch blocks and conditional checks to handle exceptions and specific error cases.
+This project uses a centralized, global exception handling mechanism to ensure a consistent and user-friendly experience when errors occur. Instead of handling exceptions in every single controller method.
 
-* **Unit Tests:** A comprehensive suite of unit tests has been implemented to guarantee the correctness of all business logic, including the validation rules. This ensures the API behaves as expected under various conditions.
+* **Test Suite:** To ensure the reliability and correctness of the API, this project includes a comprehensive test suite. To run the tests, execute the following command:
+```bash
+./mvnw clean test
+```
 
 ---
 
@@ -190,10 +193,10 @@ This endpoint is used to add a new book to the database. It handles both `Ebook`
 * **Request Body:** A JSON object containing the book details. The `bookType` field is mandatory for the system to correctly identify the book type.
 * **Success Response:** Returns a `201 Created` status code with the newly created book object, including the `id` assigned by the database.
 * **Error Response:** 
-    * Returns a `400 Bad Request` status if the request body is missing or contains an empty/`null` `isbn`.
     * Returns a `409 Conflict status` if a book with the same ISBN already exists.
+    * Returns a `400 Bad Request` status if the request body is missing or contains an empty/`null` `isbn`.
 
-* **Example `curl` Command (Ebook):**
+* **Example `curl` Command (Ebook addition):**
 ```bash
 curl -X POST http://localhost:8080/api/books \
 -H "Content-Type: application/json" \
@@ -205,7 +208,7 @@ curl -X POST http://localhost:8080/api/books \
     "bookType": "ebook"
 }'
 ```
-* **Example `curl` Command (Physical Copy):**
+* **Example `curl` Command (Physical Copy Book addition):**
 ```bash
 curl -X POST http://localhost:8080/api/books \
 -H "Content-Type: application/json" \
@@ -215,6 +218,32 @@ curl -X POST http://localhost:8080/api/books \
     "author": "Robert C. Martin",
     "stock": 50,
     "bookType": "physical_copy"
+}'
+```
+* **Example `curl` Command (Empty `isbn` field):**
+```bash
+curl -X POST \
+  http://localhost:8080/api/books \
+  -H "Content-Type: application/json" \
+  -d '{
+    "isbn": "",
+    "title": "Another Example",
+    "author": "Another Test Author",
+    "stock": 0,
+    "bookType": "physical_copy"
+}'
+```
+
+* **Example `curl` Command (Missing `isbn` field):**
+```bash
+curl -X POST \
+  http://localhost:8080/api/books \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Example Book",
+    "author": "Test Author",
+    "stock": 0,
+    "bookType": "ebook"
 }'
 ```
 
@@ -310,6 +339,7 @@ curl -X GET "http://localhost:8080/api/books/author/Andrew%20Hunt"
     }
 ]
 ```
+
 <h3 id="update-a-book-by-isbn">5. Update a Book by ISBN</h3>
 
 This endpoint updates the details of an existing book using its unique ISBN. It supports partial updates, so you only need to include the fields you want to change in the request body. Any omitted fields will remain unchanged.
@@ -338,7 +368,16 @@ curl -X PATCH -H "Content-Type: application/json" -d '{ "stock": 110 }' http://l
 
 }
 ```
-
+* **Example `curl` Command: (Empty Request Body)**
+```bash
+curl -X PATCH 'http://localhost:8080/api/books/978-0061120084'
+```
+* **Example `curl` Command: (ISBN does not exist)**
+```bash
+curl -X PATCH -H "Content-Type: application/json" -d '{
+    "title": "The Updated Book Title"
+}' http://localhost:8080/api/books//9780123456789
+```
 <h3 id="delete-a-book-by-isbn">6. Delete a Book by ISBN</h3>
 
 This endpoint deletes a book from the inventory using its unique ISBN.

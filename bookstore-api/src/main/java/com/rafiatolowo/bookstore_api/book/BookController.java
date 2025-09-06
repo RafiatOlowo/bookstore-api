@@ -3,12 +3,20 @@ package com.rafiatolowo.bookstore_api.book;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.rafiatolowo.bookstore_api.book.exceptions.BookNotFoundException;
+
 import java.util.List;
 import java.util.Optional;
 
 /**
- * The REST controller for the Bookstore API.
- * This class handles all incoming web requests related to books.
+ * The REST controller for managing books.
+ * <p>
+ * This class handles all incoming HTTP requests related to the book resource.
+ * It serves as the entry point for the RESTful API, mapping URLs to methods
+ * that perform CRUD (Create, Read, Update, Delete) operations on books.
+ * All methods here are designed to work with the custom global exception handler
+ * to provide meaningful error responses.
  */
 @RestController
 @RequestMapping("/api/books")
@@ -16,49 +24,55 @@ public class BookController {
 
     private final BookService bookService;
 
-    /**
-     * Constructor for dependency injection.
+     /**
+     * Constructs a new BookController with the specified BookService.
+     *
+     * @param bookService The service component to handle business logic for books.
      */
-    
     public BookController(BookService bookService) {
         this.bookService = bookService;
     }
 
     /**
-     * Endpoint to retrieve a list of all books.
-     * GET /api/books
-     * @return A ResponseEntity containing a list of all books and an OK status.
+     * Retrieves a list of all books.
+     * <p>
+     * This method handles GET requests to "/api/book". It fetches a list of
+     * all available books in the system.
+     *
+     * @return A {@link ResponseEntity} containing a list of all {@link Book} objects
+     * and an HTTP status of OK.
      */
     @GetMapping
     public ResponseEntity<List<Book>> getAllBooks() {
         List<Book> books = bookService.getAllBooks();
-        return ResponseEntity.ok(books);
+        return new ResponseEntity<>(books, HttpStatus.OK);
     }
 
     /**
-     * Endpoint to add a new book to the database.
-     * POST /api/books
-     * The try-catch block is used to handle a specific business exception.
-     * @param book The book object received from the request body.
-     * @return A ResponseEntity with the created book and a CREATED status, or a CONFLICT status with an error message.
+     * Saves a new book.
+     * <p>
+     * This method handles POST requests to "/api/book".  It creates a new book
+     * resource using the data provided in the request body.
+     *
+     * @param book The book object to be saved, passed in the request body.
+     * @return A {@link ResponseEntity} containing the newly saved {@link Book} object
+     * and an HTTP status of CREATED.
      */
     @PostMapping
     public ResponseEntity<Object> addBook(@RequestBody Book book) {
-        try {
-            Book createdBook = bookService.addBook(book);
-            return new ResponseEntity<>(createdBook, HttpStatus.CREATED);
-        } catch (IllegalStateException e) {
-            // Return the exception message in the response body.
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        }
+        Book createdBook = bookService.addBook(book);
+        return new ResponseEntity<>(createdBook, HttpStatus.CREATED);
     }
 
-/**
-     * GET endpoint to retrieve a single book by its ISBN.
-     * The Optional is handled with an if-else block to provide a specific
-     * error response when the book is not found.
-     * @param isbn The unique ISBN of the book.
-     * @return The book with the specified ISBN, or a 404 Not Found error with a message.
+     /**
+     * Retrieves a single book by its ISBN.
+     * <p>
+     * This method handles GET requests to "/api/book/{isbn}". It retrieves
+     * a specific book based on the ISBN provided as a path variable.
+     *
+     * @param isbn The ISBN of the book to retrieve.
+     * @return A {@link ResponseEntity} containing the found {@link Book} object
+     * and an HTTP status of OK.
      */
     @GetMapping("/{isbn}")
     public ResponseEntity<Object> getBookByIsbn(@PathVariable String isbn) {
@@ -71,9 +85,14 @@ public class BookController {
     }
 
     /**
-     * GET endpoint to find books by author.
+     * Retrieves book(s) written by a specified author.
+     * <p>
+     * This method handles GET requests to "/api/book/author/{author}".
+     * It retrieves a list of books written by the specified author.
+     *
      * @param author The name of the author to search for.
-     * @return A list of books by the specified author.
+     * @return A {@link ResponseEntity} containing a list of books by the specified author and an HTTP status of OK.
+     * The list may be empty if no books are found by the author.
      */
     @GetMapping("/author/{author}")
     public ResponseEntity<List<Book>> getBooksByAuthor(@PathVariable String author) {
@@ -82,36 +101,48 @@ public class BookController {
     }
 
     /**
-     * PATCH endpoint to partially update an existing book by its ISBN.
-     * This method modifies one or more fields of an existing book.
-     * A try-catch block handles the case where the book to update is not found.
+     * Partially updates an existing book by its ISBN.
+     * <p>
+     * This method handles PATCH requests to "/api/book/{isbn}". It modifies one or more
+     * fields of an existing book based on the request body.
+     *
      * @param isbn The ISBN of the book to update.
      * @param updatedBook The updated book object containing the fields to be modified.
-     * @return The updated book, or a 404 Not Found error with a message.
+     * @return The updated book with an HTTP status of OK.
+     * If the book is not found, the {@link com.rafiatolowo.bookstore_api.book.BookNotFoundException}
+     * is thrown and handled by the global exception handler, returning a 404 Not Found status.
      */
     @PatchMapping("/{isbn}")
-    public ResponseEntity<Object> updateBook(@PathVariable String isbn, @RequestBody Book updatedBook) {
-        try {
-            Book book = bookService.updateBook(isbn, updatedBook);
-            return ResponseEntity.ok(book);
-        } catch (IllegalStateException e) {
-            // Return the exception message in the response body.
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+    public ResponseEntity<Book> updateBook(@PathVariable String isbn, @RequestBody Book updatedBook) {
+        Book book = bookService.updateBook(isbn, updatedBook);
+        return ResponseEntity.ok(book);
     }
 
     /**
-     * DELETE endpoint to delete a book from the inventory by its ISBN.
-     * The boolean return value from the service is checked to determine the response.
+     * Deletes a book from the inventory by its ISBN.
+     * <p>
+     * This method handles DELETE requests to "/api/book/{isbn}". It removes the book
+     * that matches the ISBN provided as a path variable.
+     *
      * @param isbn The ISBN of the book to delete.
-     * @return A 204 No Content status on success, or a 404 Not Found error with a message.
+     * @return A {@link ResponseEntity} with an HTTP status of NO_CONTENT, indicating
+     * successful deletion.
+     * If the book is not found, the {@link com.rafiatolowo.bookstore_api.book.BookNotFoundException}
+     * is thrown and handled by the global exception handler, returning a 404 Not Found status.
      */
     @DeleteMapping("/{isbn}")
-    public ResponseEntity<String> deleteBookByIsbn(@PathVariable String isbn) {
-        if (bookService.deleteBookByIsbn(isbn)) {
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Book not found with ISBN: " + isbn);
-        }
+    public ResponseEntity<Void> deleteBookByIsbn(@PathVariable String isbn) {
+        bookService.deleteBookByIsbn(isbn);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Exception handler for when a book is not found.
+     * This method catches the BookNotFoundException and returns an HTTP 404 Not Found status.
+     */
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(BookNotFoundException.class)
+    public String handleBookNotFoundException(BookNotFoundException ex) {
+        return ex.getMessage();
     }
 }

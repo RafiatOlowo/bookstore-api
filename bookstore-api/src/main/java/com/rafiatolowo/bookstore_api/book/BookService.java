@@ -1,6 +1,10 @@
 package com.rafiatolowo.bookstore_api.book;
 
 import org.springframework.stereotype.Service;
+
+import com.rafiatolowo.bookstore_api.book.exceptions.BookAlreadyExistsException;
+import com.rafiatolowo.bookstore_api.book.exceptions.BookNotFoundException;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -30,11 +34,18 @@ public class BookService {
     }
 
     /**
-     * Finds a book by its unique ISBN.
+     * Retrieves a book from the repository using its unique ISBN.
      *
-     * @param isbn The ISBN of the book to find.
-     * @return An Optional containing the found book, or an empty Optional if not found.
-     * @throws IllegalArgumentException if the ISBN is null or empty.
+     * This method searches for a book based on the provided ISBN. If a book
+     * with the matching ISBN is found, it is returned within an {@code Optional}.
+     * If no book is found for the given ISBN, an empty {@code Optional} is returned.
+     *
+     * @param isbn The ISBN (International Standard Book Number) of the book to search for.
+     * This parameter must not be null or an empty string after trimming whitespace.
+     * @return An {@code Optional<Book>} containing the {@code Book} object if found,
+     * otherwise an empty {@code Optional}.
+     * @throws IllegalArgumentException if the provided {@code isbn} is null, empty, or
+     * consists only of whitespace.
      */
     public Optional<Book> findByIsbn(String isbn) {
         if (isbn == null || isbn.trim().isEmpty()) {
@@ -43,15 +54,20 @@ public class BookService {
         return bookRepository.findByIsbn(isbn);
     }
     
-    /**
+      /**
      * Adds a new book to the database.
-     * For example, it checks if a book with the same ISBN already exists
-     * before saving a new one.
-     * 
-     * @param book The book object to save.
-     * @return The saved book entity.
-     * @throws IllegalStateException if a book with the same ISBN already exists.
-     * @throws IllegalArgumentException if the provided book is null or has a null/empty ISBN.
+     * <p>
+     * This method first validates that the provided {@code book} object and its ISBN
+     * are not null or empty. It then checks if a book with the same ISBN
+     * already exists in the database. If a duplicate is found, a
+     * {@link BookAlreadyExistsException} is thrown. Otherwise, the new book
+     * is saved and returned.
+     * </p>
+     *
+     * @param book The {@code Book} object to be added to the database. Must not be null and must contain a valid ISBN.
+     * @return The {@code Book} entity as it is saved in the database, including any generated IDs.
+     * @throws IllegalArgumentException if the provided {@code book} is null or if its ISBN is null or blank.
+     * @throws BookAlreadyExistsException if a book with the same ISBN already exists in the repository.
      */
     public Book addBook(Book book) {
         if (book == null || book.getIsbn() == null || book.getIsbn().isBlank()) {
@@ -61,7 +77,7 @@ public class BookService {
         // Business logic: Check for duplicates before saving.
         Optional<Book> existingBook = findByIsbn(book.getIsbn());
         if (existingBook.isPresent()) {
-            throw new IllegalStateException("A book with ISBN " + book.getIsbn() + " already exists.");
+            throw new BookAlreadyExistsException("A book with ISBN " + book.getIsbn() + " already exists.");
         }
         return bookRepository.save(book);
     }
@@ -79,16 +95,18 @@ public class BookService {
         return bookRepository.findByAuthor(author);
     }
 
-     /**
+        /**
      * Updates an existing book. This method handles partial updates by
-     * only updating the fields that are not null in the request body.
-     * 
-     * @param isbn The ISBN of the book to update.
-     * @param updatedBook The book object with the new values.
-     * @return The updated book.
-     * @throws IllegalStateException if the book to update is not found.
-     * @throws IllegalArgumentException if the ISBN is null or empty, or if an
-     * attempt is made to update immutable fields like ID or bookType.
+     * only updating the fields that are not null in the provided {@code updatedBook} object.
+     * The update is performed on the book identified by the given ISBN.
+     *
+     * @param isbn The ISBN of the book to update. Must not be null or empty.
+     * @param updatedBook The book object containing the new values for the fields to be updated.
+     * Fields with a null value will be ignored.
+     * @return The fully updated {@code Book} object as it is saved in the database.
+     * @throws IllegalArgumentException if the {@code isbn} is null or empty, or if an
+     * attempt is made to update immutable fields such as the book's ID or its type.
+     * @throws BookNotFoundException if a book with the specified {@code isbn} is not found in the repository.
      */
     public Book updateBook(String isbn, Book updatedBook) {
        // Validation: Check for invalid input first
@@ -97,7 +115,7 @@ public class BookService {
         }
 
         Book existingBook = bookRepository.findByIsbn(isbn)
-                .orElseThrow(() -> new IllegalStateException("Book with ISBN " + isbn + " not found."));
+                .orElseThrow(() -> new BookNotFoundException("Book with ISBN " + isbn + " not found."));
         
         // Validate that immutable fields are not being updated.
         // The ID is generated, and the book's type is part of its identity,
@@ -132,6 +150,7 @@ public class BookService {
      * @param isbn The ISBN of the book to delete.
      * @return true if the book was deleted, false otherwise.
      * @throws IllegalArgumentException if the ISBN is null or empty.
+     * @throws BookNotFoundException if the book to delete is not found.
      */
     public boolean deleteBookByIsbn(String isbn) {
         if (isbn == null || isbn.isBlank()) {
@@ -142,7 +161,8 @@ public class BookService {
         if (book.isPresent()) {
             bookRepository.delete(book.get());
             return true;
+        } else {
+            throw new BookNotFoundException("Book with ISBN " + isbn + " not found.");
         }
-        return false;
     }
 }
