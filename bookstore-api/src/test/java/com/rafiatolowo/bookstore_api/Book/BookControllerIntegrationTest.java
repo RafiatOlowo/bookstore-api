@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.util.UriComponentsBuilder;
 import com.rafiatolowo.bookstore_api.BookstoreApiApplication;
+import com.rafiatolowo.bookstore_api.book.exceptions.BookNotFoundException;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -191,18 +192,27 @@ public class BookControllerIntegrationTest {
     @Test
     void testUpdateBook_returnsNotFoundForNonExistentBook() {
         // Arrange
-        String isbn = "non-existent-isbn";
-        Book updatedBookData = new EBook(isbn, "Updated Title", "Updated Author", 50);
-
-        when(bookService.updateBook(eq(isbn), any(Book.class))).thenThrow(new IllegalStateException("Book not found"));
-        URI endpoint = UriComponentsBuilder.fromUri(baseUri).pathSegment(isbn).build().toUri();
-
+        String nonExistentIsbn = "non-existent-isbn";
+        Book bookUpdate = new EBook("non-existent-isbn", "Title Update", "Author Update", 20);
+        
+        // Mock the service layer to throw the correct exception.
+        doThrow(new BookNotFoundException("Book not found"))
+            .when(bookService).updateBook(eq(nonExistentIsbn), any(Book.class));
+        
         // Act
-        ResponseEntity<Void> response = restTemplate.exchange(endpoint, HttpMethod.PATCH, new HttpEntity<>(updatedBookData), Void.class);
+        HttpEntity<Book> requestEntity = new HttpEntity<>(bookUpdate);
+        ResponseEntity<String> response = restTemplate.exchange(
+            "/api/books/{isbn}",
+            HttpMethod.PATCH,
+            requestEntity,
+            String.class,
+            nonExistentIsbn
+        );
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(bookService).updateBook(eq(isbn), any(Book.class));
+        assertEquals("Book not found", response.getBody());
+        verify(bookService).updateBook(eq(nonExistentIsbn), any(Book.class));
     }
 
     @Test
@@ -224,7 +234,8 @@ public class BookControllerIntegrationTest {
     void testDeleteBook_returnsNotFoundForNonExistentBook() {
         // Arrange
         String isbn = "non-existent-isbn";
-        when(bookService.deleteBookByIsbn(isbn)).thenReturn(false);
+        // Mock the service to throw the specific exception
+        doThrow(new BookNotFoundException("Book with ISBN " + isbn + " not found.")).when(bookService).deleteBookByIsbn(isbn);
         URI endpoint = UriComponentsBuilder.fromUri(baseUri).pathSegment(isbn).build().toUri();
 
         // Act
