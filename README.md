@@ -1,5 +1,7 @@
 # BookStore API
-This is the Bookstore API, a RESTful service designed to manage a digital catalog of books. Built with Spring Boot, it provides a complete set of endpoints to create, retrieve, update, and delete book records, serving as the backend for a robust inventory management system.
+The Bookstore API is a RESTful service built on Spring Boot that powers an inventory management system. It's designed to manage a digital catalog of books by intelligently integrating with the Google Books API for rich catalog data.
+
+This backend provides a full suite of endpoints to manage book inventory, allowing for the creation, retrieval, updating, and deletion of records. This hybrid approach ensures a consistently updated book catalog while maintaining precise control over your local stock and business data.
 
 ## Core Functionality
 This API provides a comprehensive set of endpoints for managing books in a bookstore database. Key features include:
@@ -78,6 +80,7 @@ Follow these steps to set up and run the project on your local machine.
 * **Spring Boot**: The framework used to build the application.
 * **Maven**: The build automation tool.
 * **Spring Data JPA**: For data persistence and database interaction.
+* **Unirest:** A lightweight HTTP client used to fetch data from the Google Books API.
 * **MySQL**: The relational database management system.
 * **H2 Database:** An in-memory database used for running tests.
 * **SpringDoc OpenAPI / Swagger UI:** For generating interactive API documentation.
