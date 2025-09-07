@@ -5,7 +5,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.rafiatolowo.bookstore_api.book.exceptions.BookAlreadyExistsException;
 import com.rafiatolowo.bookstore_api.book.exceptions.BookNotFoundException;
 
@@ -332,5 +331,22 @@ public class BookServiceUnitTest {
         assertThrows(IllegalArgumentException.class, () -> bookService.deleteBookByIsbn(null));
         // Verify that the repository method was never called.
         verify(bookRepository, never()).findByIsbn(any());
+    }
+
+    // TESTS FOR GOOGLE BOOKS API FALLBACK
+
+    @Test
+    void testFindByIsbn_withExistentIsbn_usesGoogleBooksApi() {
+        // Arrange: Set up the test with an existent ISBN.
+        String isbn = "1234567890123";
+        when(bookRepository.findByIsbn(isbn)).thenReturn(Optional.of(new EBook()));
+
+        // Act: Call the service method.
+        Optional<Book> result = bookService.findByIsbn(isbn);
+
+        // Assert: Verify that the result is present and the API was not called.
+        assertTrue(result.isPresent());
+        verify(bookRepository, times(1)).findByIsbn(isbn);
+        verify(bookRepository, never()).save(any(Book.class));
     }
 }
