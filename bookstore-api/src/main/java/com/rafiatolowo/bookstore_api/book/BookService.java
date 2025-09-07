@@ -61,15 +61,17 @@ public class BookService {
         // database than from an external network service.
         Optional<Book> localBook = bookRepository.findByIsbn(isbn);
         if (localBook.isPresent()) {
-            System.out.println("Book found in local inventory. Returning local copy.");
             // If the book is found, we return it immediately.
             return localBook;
         }
 
         // --- STEP 3: If not found locally, fetch from the external API ---
-        System.out.println("Book not in local inventory. Fetching from external API.");
+        // Clean the ISBN by removing any non-digit characters (like dashes or spaces) 
+        // specifically for the API call.
+        String cleanedIsbn = isbn.replaceAll("[^\\dX]", "");
+
         // Construct the full URL for the Google Books API, including the ISBN as a query parameter.
-        String url = "https://www.googleapis.com/books/v1/volumes?q=isbn:" + isbn;
+        String url = "https://www.googleapis.com/books/v1/volumes?q=isbn:" + cleanedIsbn;
 
         // A try-catch block is essential for any network call to handle potential
         // issues like network errors, invalid URLs, or timeouts.
