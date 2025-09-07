@@ -5,6 +5,11 @@ import org.springframework.stereotype.Service;
 import com.rafiatolowo.bookstore_api.book.exceptions.BookAlreadyExistsException;
 import com.rafiatolowo.bookstore_api.book.exceptions.BookNotFoundException;
 
+import kong.unirest.HttpResponse;
+import kong.unirest.JsonNode;
+import kong.unirest.Unirest;
+import kong.unirest.json.JSONObject;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -34,24 +39,103 @@ public class BookService {
     }
 
     /**
-     * Retrieves a book from the repository using its unique ISBN.
+     * Finds a book by its ISBN (International Standard Book Number).
+     * This method implements a "look-aside" caching strategy: it first checks the local
+     * database, and if the book is not found, it fetches the data from the Google Books API.
      *
-     * This method searches for a book based on the provided ISBN. If a book
-     * with the matching ISBN is found, it is returned within an {@code Optional}.
-     * If no book is found for the given ISBN, an empty {@code Optional} is returned.
-     *
-     * @param isbn The ISBN (International Standard Book Number) of the book to search for.
-     * This parameter must not be null or an empty string after trimming whitespace.
-     * @return An {@code Optional<Book>} containing the {@code Book} object if found,
-     * otherwise an empty {@code Optional}.
-     * @throws IllegalArgumentException if the provided {@code isbn} is null, empty, or
-     * consists only of whitespace.
+     * @param isbn The ISBN of the book to find.
+     * @return An {@code Optional<Book>} containing the found book, or an empty Optional
+     * if the book cannot be found in either the local database or the external API.
      */
     public Optional<Book> findByIsbn(String isbn) {
+        // --- STEP 1: Validate the input first (best practice) ---
+        // This is a crucial check to ensure the ISBN is not null or an empty string.
+        // Throwing an IllegalArgumentException prevents the rest of the method from executing
+        // with invalid data and immediately tells the caller something is wrong.
         if (isbn == null || isbn.trim().isEmpty()) {
             throw new IllegalArgumentException("ISBN must not be null or empty");
         }
-        return bookRepository.findByIsbn(isbn);
+
+        // --- STEP 2: Check the local database first ---
+        // This is the primary check. It's much faster to get data from our local
+        // database than from an external network service.
+        Optional<Book> localBook = bookRepository.findByIsbn(isbn);
+        if (localBook.isPresent()) {
+            System.out.println("Book found in local inventory. Returning local copy.");
+            // If the book is found, we return it immediately.
+            return localBook;
+        }
+
+        // --- STEP 3: If not found locally, fetch from the external API ---
+        System.out.println("Book not in local inventory. Fetching from external API.");
+        // Construct the full URL for the Google Books API, including the ISBN as a query parameter.
+        String url = "https://www.googleapis.com/books/v1/volumes?q=isbn:" + isbn;
+
+        // A try-catch block is essential for any network call to handle potential
+        // issues like network errors, invalid URLs, or timeouts.
+        try {
+            // Make the GET request to the Google Books API and expect a JSON response.
+            HttpResponse<JsonNode> response = Unirest.get(url).asJson();
+
+            // Check if the API request was successful (HTTP status code 200).
+            if (response.isSuccess()) {
+                // Get the main JSON object from the response body.
+                JsonNode rootNode = response.getBody();
+                // Check if the response contains a valid "items" array with at least one result.
+                if (rootNode != null && rootNode.getObject().has("items") && rootNode.getObject().getJSONArray("items").length() > 0) {
+                    // Extract the first item from the "items" array as a JSONObject.
+                    JSONObject firstItem = rootNode.getObject().getJSONArray("items").getJSONObject(0);
+
+                    // Extract the relevant data from the nested JSON structure.
+                    // The volumeInfo object contains details like title, author, and page count.
+                    JSONObject volumeInfo = firstItem.getJSONObject("volumeInfo");
+                    // The accessInfo object contains details about the availability of the book as an e-book.
+                    JSONObject accessInfo = firstItem.getJSONObject("accessInfo");
+
+                    Book newBook;
+                    // --- STEP 4: Infer the book type based on the data from the API ---
+                    // Determine if an EBook or a PhysicalCopyBook should created.
+                    if (accessInfo.has("epub") || accessInfo.has("pdf")) {
+                        // If the API indicates it has epub or pdf info, create an EBook.
+                        newBook = new EBook();
+                    } else if (volumeInfo.has("pageCount")) {
+                        // If there's a page count, infer it's a physical copy.
+                        newBook = new PhysicalCopyBook();
+                    } else {
+                        // If type can't be determined, return an empty Optional.
+                        return Optional.empty();
+                    }
+
+                    // --- STEP 5: Set common properties and save to local database ---
+                    // Populate the new Book object with data from the API.
+                    newBook.setIsbn(isbn);
+                    newBook.setTitle(volumeInfo.getString("title"));
+
+                    // Set stock to default 0
+                    newBook.setStock(0);
+
+                    // Check if the 'authors' array exists before trying to access it
+                    // to prevent a JSONException.
+                    if (volumeInfo.has("authors")) {
+                        // Assume the first author is the main one.
+                        newBook.setAuthor(volumeInfo.getJSONArray("authors").getString(0));
+                    }
+
+                    // Save the newly created book to local database.
+                    // It will now be part of our inventory and can be found on subsequent requests.
+                    Book savedBook = bookRepository.save(newBook);
+                    System.out.println("Book fetched from API and saved to local inventory.");
+                    return Optional.of(savedBook);
+                }
+            }
+        } catch (Exception e) {
+            // Catch and log any exceptions that occur during the API call or data parsing.
+            System.err.println("Error fetching book details from External API: " + e.getMessage());
+        }
+
+        // If any part of the process fails (e.g., API request fails, or no items found),
+        // Return an empty Optional.
+        return Optional.empty();
     }
     
       /**
